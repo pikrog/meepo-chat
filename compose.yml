@@ -1,0 +1,23 @@
+services:
+    chat-server:
+        image: chat-server:latest
+        build: ./chat-server/
+        networks:
+          - main-network
+        ports:
+          - target: 80
+            published: 80
+            protocol: tcp
+        env_file:
+          - ./chat-server/.env.docker
+    db:
+        image: redis:7.0.5-bullseye
+        networks:
+          - main-network
+        ports:
+          - target: 6379
+            published: 6379
+            protocol: tcp
+            
+networks:
+    main-network:
