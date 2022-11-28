@@ -26,16 +26,16 @@ class ChatService:
     async def get_messages(self):
         return await self.__repository.get_messages()
 
-    async def get_user_list(self):
-        return await self.__group.get_user_list()
+    def get_user_list(self):
+        return self.__group.get_user_list()
 
-    async def is_user_in_list(self, user: User):
-        return await self.__group.is_user_in_list(user)
+    def is_user_in_list(self, user: User):
+        return self.__group.is_user_in_list(user)
 
     async def join(self, client: ChatClient):
-        await self.__group.add_client(client)
+        self.__group.add_client(client)
         await self._send_join_message(client.user)
 
     async def leave(self, client: ChatClient):
-        await self.__group.remove_client(client)
+        self.__group.remove_client(client)
         await self._send_leave_message(client.user)

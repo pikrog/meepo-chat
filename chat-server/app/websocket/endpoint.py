@@ -21,8 +21,8 @@ async def websocket_endpoint(
         await websocket.close(code=status.HTTP_403_FORBIDDEN, reason=str(exc))
         return
 
-    if await chat_service.is_user_in_list(user):
-        await websocket.close(code=status.HTTP_403_FORBIDDEN, reason="Already in the room")
-        return
+    # if chat_service.is_user_in_list(user):
+    #     await websocket.close(code=status.HTTP_403_FORBIDDEN, reason="Already in the room")
+    #     return
 
     await ClientHandler(chat_service, websocket, user).handle()
