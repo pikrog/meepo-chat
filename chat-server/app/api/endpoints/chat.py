@@ -26,7 +26,7 @@ async def send_chat_message(
         user: User = Depends(get_user),
         chat_service: ChatService = Depends(Provide[Container.chat_service])
 ):
-    if not await chat_service.is_user_in_list(user):
+    if not chat_service.is_user_in_list(user):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not in the chat room")
     message = Message(
         type=MessageType.chat,
