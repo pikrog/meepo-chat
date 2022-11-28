@@ -1,4 +1,5 @@
-from app.core.client import ChatClientGroup, ChatClient
+from app.core.client.client import ChatClient
+from app.core.client.group import ChatClientGroup
 from app.core.models.message import Message, MessageType
 from app.core.models.socket import SocketMessage, SocketOpcode
 from app.core.models.user import User

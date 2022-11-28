@@ -1,20 +1,7 @@
-from asyncio import Lock
-
 from fastapi.encoders import jsonable_encoder
 
+from app.core.client.client import ChatClient
 from app.core.models.user import User
-
-
-class ChatClient:
-    class DisconnectException(Exception):
-        def __init__(self):
-            super().__init__("client disconnected")
-
-    def __init__(self, user: User):
-        self.user = user
-
-    async def send_json(self, message):
-        raise NotImplementedError
 
 
 class ChatClientGroup:
