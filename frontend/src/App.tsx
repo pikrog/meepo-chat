@@ -27,7 +27,7 @@ export const App: Component = () => {
       <main class="h-screen flex-1">
         <div class="flex h-128 flex-col w-full">
           <For each={messages()} fallback={<div>No messages yet</div>}>
-            {(item, index) => <div id={`message-${index}`}>{item}</div>}
+            {(item, index) => <div id={`message-${index()}`}>{item}</div>}
           </For>
         </div>
         <textarea
