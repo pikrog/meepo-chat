@@ -1,8 +1,7 @@
-import starlette.websockets
-from starlette.websockets import WebSocket
+from starlette.websockets import WebSocket, WebSocketDisconnect
 
-from app.core.server.client import ChatClient, DisconnectException
 from app.core.models.user import User
+from app.core.server.client import ChatClient, DisconnectException
 
 
 class WebSocketChatClient(ChatClient):
@@ -21,7 +20,7 @@ class WebSocketChatClient(ChatClient):
             raise DisconnectException
         try:
             await self.__websocket.send_json(message)
-        except starlette.websockets.WebSocketDisconnect as e:
+        except WebSocketDisconnect as e:
             self.__is_closed = True
             raise DisconnectException from e
 
@@ -30,6 +29,6 @@ class WebSocketChatClient(ChatClient):
             raise DisconnectException
         try:
             return await self.__websocket.receive_json()
-        except starlette.websockets.WebSocketDisconnect as e:
+        except WebSocketDisconnect as e:
             self.__is_closed = True
             raise DisconnectException from e
