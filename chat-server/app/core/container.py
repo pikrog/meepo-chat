@@ -1,6 +1,6 @@
 from dependency_injector import containers, providers
 
-from app.core.client.group import ChatClientGroup
+from app.core.server.group import ChatClientGroup
 from app.core.config import Settings
 from app.core.database import get_connection_pool, get_connection
 from app.core.repositories.chat import ChatRepository

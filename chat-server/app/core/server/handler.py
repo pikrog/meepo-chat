@@ -1,6 +1,6 @@
 from fastapi.encoders import jsonable_encoder
 
-from app.core.client.client import ChatClient
+from app.core.server.client import ChatClient
 from app.core.models.message import MessageIn, Message, MessageType
 from app.core.models.socket import SocketMessage, SocketOpcode
 from app.core.services.chat import ChatService

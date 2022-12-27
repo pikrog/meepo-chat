@@ -3,7 +3,7 @@ from fastapi import Depends
 from starlette import status
 from starlette.websockets import WebSocket
 
-from app.core.client.handler import ChatClientHandler
+from app.core.server.handler import ChatClientHandler
 from app.core.container import Container
 from app.core.security.auth import get_user, get_token_from_cookie, CredentialsError
 from app.core.services.chat import ChatService
@@ -22,9 +22,9 @@ async def websocket_endpoint(
         await websocket.close(code=status.HTTP_403_FORBIDDEN, reason=str(exc))
         return
 
-    # if chat_service.is_user_in_list(user):
-    #     await websocket.close(code=status.HTTP_403_FORBIDDEN, reason="Already in the room")
-    #     return
+    if chat_service.is_user_in_list(user):
+        await websocket.close(code=status.HTTP_403_FORBIDDEN, reason="Already in the room")
+        return
 
     await websocket.accept()
 

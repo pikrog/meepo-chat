@@ -1,7 +1,7 @@
 import starlette.websockets
 from starlette.websockets import WebSocket
 
-from app.core.client.client import ChatClient
+from app.core.server.client import ChatClient
 from app.core.models.user import User
 
 
