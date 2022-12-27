@@ -18,11 +18,11 @@ class ChatClientHandler:
         if message.opcode == SocketOpcode.quit:
             return True
         elif message.opcode == SocketOpcode.heartbeat:
-            response = SocketMessage(opcode=SocketOpcode.heartbeat, data="ok")
+            response = SocketMessage.create_heartbeat()
             await self._send_json(response)
         elif message.opcode == SocketOpcode.user_list:
             user_list = self.__service.get_user_list()
-            response = SocketMessage(opcode=SocketOpcode.user_list, data=user_list)
+            response = SocketMessage.from_user_list(user_list)
             await self._send_json(response)
         elif message.opcode == SocketOpcode.chat:
             message_in = ChatMessageIn(**message.data)
@@ -42,13 +42,13 @@ class ChatClientHandler:
                 message = SocketMessage(**payload)
                 final_operation = await self._execute_single_operation(message)
             except ValueError as e:
-                response = SocketMessage(opcode=SocketOpcode.error, data=str(e))
+                response = SocketMessage.from_error(str(e))
                 await self._send_json(response)
 
     async def handle(self):
         try:
             if self.__service.is_user_in_list(self.__client.user):
-                error_message = SocketMessage(opcode=SocketOpcode.error, data="Already in the room")
+                error_message = SocketMessage.from_error("Already in the room")
                 await self._send_json(error_message)
                 await self.__client.close()
                 return

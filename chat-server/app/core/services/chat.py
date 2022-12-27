@@ -21,7 +21,7 @@ class ChatService:
 
     async def send_message(self, message: ChatMessage):
         await self.__repository.append_message(message)
-        socket_message = SocketMessage(opcode=SocketOpcode.chat, data=message)
+        socket_message = SocketMessage.from_chat_message(message)
         await self.__group.send_message(socket_message)
 
     async def get_messages(self):

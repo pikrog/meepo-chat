@@ -23,7 +23,7 @@ async def websocket_endpoint(
     try:
         user = get_user(access_token)
     except CredentialsError as exc:
-        error_message = SocketMessage(opcode=SocketOpcode.error, data=str(exc))
+        error_message = SocketMessage.from_error(str(exc))
         await websocket.send_json(jsonable_encoder(error_message))
         await websocket.close()
         return
