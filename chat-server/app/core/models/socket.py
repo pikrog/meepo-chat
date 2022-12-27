@@ -29,7 +29,7 @@ class SocketMessage(BaseModel):
 
     @staticmethod
     def from_user_list(user_list: list[User]):
-        return SocketMessage(opcode=SocketOpcode.error, data=user_list)
+        return SocketMessage(opcode=SocketOpcode.user_list, data=user_list)
 
     @staticmethod
     def create_heartbeat(message: str = "ok"):
