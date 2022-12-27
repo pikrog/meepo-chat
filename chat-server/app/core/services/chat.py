@@ -1,3 +1,6 @@
+import asyncio
+
+from app.core.exchanges.log import LogExchange
 from app.core.models.chat import ChatMessage, ChatMessageType
 from app.core.models.socket import SocketMessage
 from app.core.models.user import User
@@ -7,9 +10,10 @@ from app.core.server.group import ChatClientGroup
 
 
 class ChatService:
-    def __init__(self, repository: ChatRepository, group: ChatClientGroup):
+    def __init__(self, repository: ChatRepository, group: ChatClientGroup, log_exchange: LogExchange):
         self.__repository = repository
         self.__group = group
+        self.__log_exchange = log_exchange
 
     async def _send_join_message(self, joining_user: User):
         message = ChatMessage(type=ChatMessageType.join, sender=joining_user.name)
@@ -20,7 +24,10 @@ class ChatService:
         await self.send_message(message)
 
     async def send_message(self, message: ChatMessage):
-        await self.__repository.append_message(message)
+        await asyncio.gather(
+            self.__repository.append_message(message),
+            self.__log_exchange.publish(message),
+        )
         socket_message = SocketMessage.from_chat_message(message)
         await self.__group.send_message(socket_message)
 

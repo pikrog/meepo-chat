@@ -1,19 +1,26 @@
 from typing import List, Union
 
-from pydantic import AnyHttpUrl, AnyUrl, BaseSettings, validator
+from pydantic import AnyHttpUrl, AnyUrl, BaseSettings, validator, AmqpDsn
 
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "chat-server"
     BACKEND_CORS_ORIGINS: List[AnyUrl] = []
 
-    MASTER_SERVER_URL: AnyHttpUrl
     JWT_SECRET: str
 
     SERVER_NAME: str
+    MAX_CLIENTS: int = 100
+    ADVERTISED_ADDRESS: str
 
     REDIS_URL: AnyUrl
     REDIS_CHAT_STREAM: str = "chat-events"
+
+    BROKER_URL: AmqpDsn
+    LOG_EXCHANGE_NAME: str = "log-exchange"
+    LOG_QUEUE_NAME: str = "log-queue"
+    HEARTBEAT_EXCHANGE_NAME: str = "heartbeat-exchange"
+    HEARTBEAT_MESSAGE_TTL: int = 10
 
     # noinspection PyMethodParameters
     @validator("BACKEND_CORS_ORIGINS", pre=True)
@@ -26,9 +33,3 @@ class Settings(BaseSettings):
 
     class Config:
         case_sensitive = True
-        env_file = ".env"
-
-
-# @lru_cache()
-# def get_settings():
-#     return Settings()

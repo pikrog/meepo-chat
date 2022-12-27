@@ -18,6 +18,21 @@ services:
           - target: 6379
             published: 6379
             protocol: tcp
+    mq:
+        image: rabbitmq:3.11.5
+        networks:
+          - main-network
+        ports:
+          # amqp
+          - target: 5672
+            published: 5672
+            protocol: tcp
+          # management console
+          - target: 15672
+            published: 15672
+            protocol: tcp
+        env_file:
+          - .env.rabbitmq
             
 networks:
     main-network:

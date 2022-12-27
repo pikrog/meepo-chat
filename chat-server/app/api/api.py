@@ -3,11 +3,12 @@ from starlette import status
 from starlette.requests import Request
 from starlette.responses import PlainTextResponse
 
-from app.api.endpoints import chat
+from app.api.endpoints import chat, server
 from app.core.security.auth import CredentialsError
 
 routers = [
-    chat.router
+    chat.router,
+    server.router,
 ]
 
 
