@@ -1,6 +1,6 @@
 from fastapi.encoders import jsonable_encoder
 
-from app.core.server.client import ChatClient
+from app.core.server.client import ChatClient, DisconnectException
 from app.core.models.user import User
 
 
@@ -33,7 +33,7 @@ class ChatClientGroup:
         for client in clients:
             try:
                 await client.send_json(serializable_message)
-            except ChatClient.DisconnectException:
+            except DisconnectException:
                 dead_clients.append(client)
         for dead_client in dead_clients:
             self.remove_client(dead_client)

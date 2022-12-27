@@ -1,11 +1,12 @@
 from app.core.models.user import User
 
 
-class ChatClient:
-    class DisconnectException(Exception):
-        def __init__(self):
-            super().__init__("client disconnected")
+class DisconnectException(Exception):
+    def __init__(self):
+        super().__init__("client disconnected")
 
+
+class ChatClient:
     def __init__(self, user: User):
         self.user = user
 

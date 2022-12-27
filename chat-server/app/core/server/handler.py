@@ -1,6 +1,6 @@
 from fastapi.encoders import jsonable_encoder
 
-from app.core.server.client import ChatClient
+from app.core.server.client import ChatClient, DisconnectException
 from app.core.models.message import MessageIn, Message, MessageType
 from app.core.models.socket import SocketMessage, SocketOpcode
 from app.core.services.chat import ChatService
@@ -56,7 +56,7 @@ class ChatClientHandler:
             await self.__service.join(self.__client)
             await self._execute_operations()
             await self.__client.close()
-        except ChatClient.DisconnectException:
+        except DisconnectException:
             pass
         finally:
             await self.__service.leave(self.__client)
