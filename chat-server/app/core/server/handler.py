@@ -1,7 +1,7 @@
 from fastapi.encoders import jsonable_encoder
 
 from app.core.server.client import ChatClient, DisconnectException
-from app.core.models.message import MessageIn, Message, MessageType
+from app.core.models.chat import ChatMessageIn, ChatMessage, ChatMessageType
 from app.core.models.socket import SocketMessage, SocketOpcode
 from app.core.services.chat import ChatService
 
@@ -25,9 +25,9 @@ class ChatClientHandler:
             response = SocketMessage(opcode=SocketOpcode.user_list, data=user_list)
             await self._send_json(response)
         elif message.opcode == SocketOpcode.chat:
-            message_in = MessageIn(**message.data)
-            chat_message = Message(
-                type=MessageType.chat,
+            message_in = ChatMessageIn(**message.data)
+            chat_message = ChatMessage(
+                type=ChatMessageType.chat,
                 sender=self.__client.user.name,
                 text=message_in.text
             )

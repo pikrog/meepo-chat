@@ -1,6 +1,6 @@
 from app.core.server.client import ChatClient
 from app.core.server.group import ChatClientGroup
-from app.core.models.message import Message, MessageType
+from app.core.models.chat import ChatMessage, ChatMessageType
 from app.core.models.socket import SocketMessage, SocketOpcode
 from app.core.models.user import User
 from app.core.repositories.chat import ChatRepository
@@ -12,14 +12,14 @@ class ChatService:
         self.__group = group
 
     async def _send_join_message(self, joining_user: User):
-        message = Message(type=MessageType.join, sender=joining_user.name)
+        message = ChatMessage(type=ChatMessageType.join, sender=joining_user.name)
         await self.send_message(message)
 
     async def _send_leave_message(self, leaving_user: User):
-        message = Message(type=MessageType.leave, sender=leaving_user.name)
+        message = ChatMessage(type=ChatMessageType.leave, sender=leaving_user.name)
         await self.send_message(message)
 
-    async def send_message(self, message: Message):
+    async def send_message(self, message: ChatMessage):
         await self.__repository.append_message(message)
         socket_message = SocketMessage(opcode=SocketOpcode.chat, data=message)
         await self.__group.send_message(socket_message)

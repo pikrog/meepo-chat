@@ -4,19 +4,19 @@ from enum import Enum
 from pydantic import BaseModel
 
 
-class MessageType(str, Enum):
+class ChatMessageType(str, Enum):
     chat = "chat"
     join = "join"
     leave = "leave"
 
 
-class MessageIn(BaseModel):
+class ChatMessageIn(BaseModel):
     text: str
 
 
-class Message(BaseModel):
+class ChatMessage(BaseModel):
     id: str | None = None
-    type: MessageType
+    type: ChatMessageType
     sender: str | None = None
     timestamp: datetime = datetime.utcnow()
     text: str | None = None

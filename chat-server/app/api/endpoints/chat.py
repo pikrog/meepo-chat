@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from starlette import status
 
 from app.core.container import Container
-from app.core.models.message import Message, MessageIn, MessageType
+from app.core.models.chat import ChatMessage, ChatMessageIn, ChatMessageType
 from app.core.models.user import User
 from app.core.security.auth import get_user
 from app.core.services.chat import ChatService
@@ -22,14 +22,14 @@ async def get_chat_messages(
 @router.put("/send")
 @inject
 async def send_chat_message(
-        message_in: MessageIn,
+        message_in: ChatMessageIn,
         user: User = Depends(get_user),
         chat_service: ChatService = Depends(Provide[Container.chat_service])
 ):
     if not chat_service.is_user_in_list(user):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not in the chat room")
-    message = Message(
-        type=MessageType.chat,
+    message = ChatMessage(
+        type=ChatMessageType.chat,
         sender=user.name,
         text=message_in.text,
     )
