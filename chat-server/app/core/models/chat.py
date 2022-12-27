@@ -2,6 +2,7 @@ from datetime import datetime
 from enum import Enum
 
 from pydantic import BaseModel
+from typing import Any
 
 
 class ChatMessageType(str, Enum):
@@ -18,5 +19,8 @@ class ChatMessage(BaseModel):
     id: str | None = None
     type: ChatMessageType
     sender: str | None = None
-    timestamp: datetime = datetime.utcnow()
+    timestamp: datetime
     text: str | None = None
+
+    def __init__(self, **data: Any):
+        super().__init__(**data, timestamp=datetime.utcnow())
