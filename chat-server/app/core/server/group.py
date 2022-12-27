@@ -28,7 +28,7 @@ class ChatClientGroup:
 
     async def _broadcast(self, message):
         dead_clients = []
-        serializable_message = jsonable_encoder(message, exclude_unset=True)
+        serializable_message = jsonable_encoder(message, exclude_none=True)
         clients = self.__clients.copy()
         for client in clients:
             try:
