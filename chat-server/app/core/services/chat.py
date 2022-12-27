@@ -1,9 +1,9 @@
-from app.core.server.client import ChatClient
-from app.core.server.group import ChatClientGroup
 from app.core.models.chat import ChatMessage, ChatMessageType
-from app.core.models.socket import SocketMessage, SocketOpcode
+from app.core.models.socket import SocketMessage
 from app.core.models.user import User
 from app.core.repositories.chat import ChatRepository
+from app.core.server.client import ChatClient
+from app.core.server.group import ChatClientGroup
 
 
 class ChatService:

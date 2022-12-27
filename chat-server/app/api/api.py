@@ -18,7 +18,7 @@ def get_api_router():
     return api_router
 
 
-def credentials_error_handler(request: Request, exc: CredentialsError):
+def credentials_error_handler(_: Request, exc: CredentialsError):
     return PlainTextResponse(status_code=status.HTTP_401_UNAUTHORIZED, content=str(exc))
 
 

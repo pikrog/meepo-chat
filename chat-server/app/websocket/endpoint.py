@@ -1,13 +1,12 @@
 from dependency_injector.wiring import Provide, inject
 from fastapi import Depends
 from fastapi.encoders import jsonable_encoder
-from starlette import status
 from starlette.websockets import WebSocket
 
-from app.core.models.socket import SocketMessage, SocketOpcode
-from app.core.server.handler import ChatClientHandler
 from app.core.container import Container
+from app.core.models.socket import SocketMessage
 from app.core.security.auth import get_user, get_token_from_cookie, CredentialsError
+from app.core.server.handler import ChatClientHandler
 from app.core.services.chat import ChatService
 from app.websocket.client import WebSocketChatClient
 

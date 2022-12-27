@@ -1,7 +1,6 @@
 from dependency_injector.wiring import inject, Provide
-from fastapi import Cookie, Depends, HTTPException
+from fastapi import Cookie, Depends
 from jose import jwt, JWTError
-from starlette import status
 
 from app.core.config import Settings
 from app.core.container import Container
@@ -20,7 +19,7 @@ class InvalidCredentialsError(CredentialsError):
 
 
 class NoCredentialsError(CredentialsError):
-    def __init__(self, *args):
+    def __init__(self):
         super().__init__("no credentials were provided")
 
 

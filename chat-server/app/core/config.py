@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     REDIS_URL: AnyUrl
     REDIS_CHAT_STREAM: str = "chat-events"
 
+    # noinspection PyMethodParameters
     @validator("BACKEND_CORS_ORIGINS", pre=True)
     def assemble_cors_origins(cls, v: Union[str, List[str]]) -> Union[List[str], str]:
         if isinstance(v, str) and not v.startswith("["):
