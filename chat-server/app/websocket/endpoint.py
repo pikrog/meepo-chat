@@ -28,12 +28,6 @@ async def websocket_endpoint(
         await websocket.close()
         return
 
-    if chat_service.is_user_in_list(user):
-        error_message = SocketMessage(opcode=SocketOpcode.error, data="Already in the room")
-        await websocket.send_json(jsonable_encoder(error_message))
-        await websocket.close()
-        return
-
     chat_client = WebSocketChatClient(user, websocket)
     chat_client_handler = ChatClientHandler(chat_service, chat_client)
     await chat_client_handler.handle()

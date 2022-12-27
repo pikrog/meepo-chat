@@ -47,6 +47,12 @@ class ChatClientHandler:
 
     async def handle(self):
         try:
+            if self.__service.is_user_in_list(self.__client.user):
+                error_message = SocketMessage(opcode=SocketOpcode.error, data="Already in the room")
+                await self._send_json(error_message)
+                await self.__client.close()
+                return
+
             await self.__service.join(self.__client)
             await self._execute_operations()
             await self.__client.close()
