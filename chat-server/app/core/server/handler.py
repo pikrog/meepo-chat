@@ -3,7 +3,7 @@ from fastapi.encoders import jsonable_encoder
 from app.core.server.client import ChatClient, DisconnectException
 from app.core.models.chat import ChatMessageIn, ChatMessage, ChatMessageType
 from app.core.models.socket import SocketMessage, SocketOpcode
-from app.core.services.chat import ChatService
+from app.core.services.chat import ChatService, JoinError
 
 
 class ChatClientHandler:
@@ -47,13 +47,17 @@ class ChatClientHandler:
 
     async def handle(self):
         try:
-            if self.__service.is_user_in_list(self.__client.user):
-                error_message = SocketMessage.from_error("Already in the room")
+            await self.__service.join(self.__client)
+        except JoinError as e:
+            error_message = SocketMessage.from_error(str(e))
+            try:
                 await self._send_json(error_message)
                 await self.__client.close()
-                return
+            except DisconnectException:
+                pass
+            return
 
-            await self.__service.join(self.__client)
+        try:
             await self._execute_operations()
             await self.__client.close()
         except DisconnectException:

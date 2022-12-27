@@ -1,5 +1,6 @@
 import asyncio
 
+from app.core.config import Settings
 from app.core.exchanges.log import LogExchange
 from app.core.models.chat import ChatMessage, ChatMessageType
 from app.core.models.socket import SocketMessage
@@ -9,8 +10,30 @@ from app.core.server.client import ChatClient
 from app.core.server.group import ChatClientGroup
 
 
+class JoinError(Exception):
+    def __init__(self, *args):
+        super().__init__(*args)
+
+
+class AlreadyInRoomError(JoinError):
+    def __init__(self):
+        super().__init__("the user is already in the room")
+
+
+class FullRoomError(JoinError):
+    def __init__(self):
+        super().__init__("the chat room is full")
+
+
 class ChatService:
-    def __init__(self, repository: ChatRepository, group: ChatClientGroup, log_exchange: LogExchange):
+    def __init__(
+            self,
+            settings: Settings,
+            repository: ChatRepository,
+            group: ChatClientGroup,
+            log_exchange: LogExchange
+    ):
+        self.__settings = settings
         self.__repository = repository
         self.__group = group
         self.__log_exchange = log_exchange
@@ -41,6 +64,11 @@ class ChatService:
         return self.__group.is_user_in_list(user)
 
     async def join(self, client: ChatClient):
+        if self.__group.is_user_in_list(client.user):
+            raise AlreadyInRoomError
+        if len(self.__group.get_user_list()) >= self.__settings.MAX_CLIENTS:
+            raise FullRoomError
+
         self.__group.add_client(client)
         await self._send_join_message(client.user)
 
