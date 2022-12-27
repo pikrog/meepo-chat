@@ -38,5 +38,6 @@ class ChatService:
         await self._send_join_message(client.user)
 
     async def leave(self, client: ChatClient):
-        self.__group.remove_client(client)
-        await self._send_leave_message(client.user)
+        user_was_in_list = self.__group.remove_client(client)
+        if user_was_in_list:
+            await self._send_leave_message(client.user)

@@ -13,8 +13,9 @@ class ChatClientGroup:
 
     def remove_client(self, client: ChatClient):
         if client not in self.__clients:
-            return
+            return False
         self.__clients.remove(client)
+        return True
 
     def get_user_list(self):
         return [client.user for client in self.__clients]
