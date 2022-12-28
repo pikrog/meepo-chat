@@ -11,11 +11,19 @@ from app.core.services.chat import ChatService
 router = APIRouter(prefix="/chat")
 
 
+class UserNotInRoomError(Exception):
+    def __init__(self):
+        super().__init__("the user is not in the room")
+
+
 @router.get("/messages", dependencies=[Depends(get_user)])
 @inject
 async def get_chat_messages(
-    chat_service: ChatService = Depends(Provide[Container.chat_service])
+    chat_service: ChatService = Depends(Provide[Container.chat_service]),
+    user: User = Depends(get_user)
 ):
+    if not chat_service.is_user_in_list(user):
+        raise UserNotInRoomError
     return await chat_service.get_messages()
 
 
@@ -27,7 +35,7 @@ async def send_chat_message(
         chat_service: ChatService = Depends(Provide[Container.chat_service])
 ):
     if not chat_service.is_user_in_list(user):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not in the chat room")
+        raise UserNotInRoomError
     message = ChatMessage(
         type=ChatMessageType.chat,
         sender=user.name,
