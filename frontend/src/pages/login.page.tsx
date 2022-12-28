@@ -1,10 +1,11 @@
+import { A } from "@solidjs/router";
 import { Component, createSignal, Match, Switch } from "solid-js";
 
 import { AiFillEye } from "../components/icons/AiFillEye";
 import { AiFillEyeInvisible } from "../components/icons/AiFillEyeInvisible";
 import { kyLogin } from "../services/ky.service";
 
-type OnSubmitEvent = Event & {
+export type OnSubmitEvent = Event & {
   submitter: HTMLElement;
 } & {
   currentTarget: HTMLFormElement;
@@ -32,7 +33,7 @@ export const LoginPage: Component = () => {
         <div>Logo</div>
         <div class="flex w-full flex-col gap-2">
           <input
-            class="w-full rounded-lg border-4 border-stone-600 p-2 indent-2 text-xl font-bold focus:border-lime-600"
+            class="w-full rounded-lg border-4 border-stone-600 p-2 indent-2 text-xl font-bold focus:border-lime-600 accent-lime-600"
             placeholder="Login"
             name="login"
             type="text"
@@ -41,7 +42,7 @@ export const LoginPage: Component = () => {
           />
           <div class="relative">
             <input
-              class="w-full rounded-lg border-4 border-stone-600 p-2 indent-2 text-xl font-bold focus:border-lime-600"
+              class="w-full rounded-lg border-4 border-stone-600 p-2 indent-2 text-xl font-bold focus:border-lime-600 accent-lime-600"
               placeholder="Hasło"
               name="password"
               value={password()}
@@ -64,11 +65,12 @@ export const LoginPage: Component = () => {
           </div>
         </div>
         <button
-          class="w-64 rounded-lg border-4 border-lime-900 bg-lime-500 py-2 text-xl font-bold text-lime-900 hover:brightness-105"
+          class="w-64 rounded-lg border-4 border-lime-900 bg-lime-500 py-2 text-xl font-bold text-lime-900 hover:text-lime-700 hover:border-lime-700"
           type="submit"
         >
           Zaloguj się
         </button>
+        <A href="/register" class="text-lime-900 hover:text-lime-700">Nie masz konta? Zarejestruj się</A>
       </form>
     </div>
   );
