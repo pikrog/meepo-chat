@@ -23,4 +23,6 @@ class ChatMessage(BaseModel):
     text: str | None = None
 
     def __init__(self, **data: Any):
-        super().__init__(**data, timestamp=datetime.utcnow())
+        if "timestamp" not in data:
+            data["timestamp"] = datetime.utcnow()
+        super().__init__(**data)
