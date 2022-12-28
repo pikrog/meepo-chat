@@ -19,6 +19,6 @@ class HeartbeatService:
             max_clients=self.__settings.MAX_CLIENTS,
         )
 
-    def send_heartbeat(self):
+    async def send_heartbeat(self):
         heartbeat_message = self.get_heartbeat_message()
-        self.__exchange.publish(heartbeat_message)
+        await self.__exchange.publish(heartbeat_message)

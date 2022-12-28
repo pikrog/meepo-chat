@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     LOG_EXCHANGE_NAME: str = "log-exchange"
     LOG_QUEUE_NAME: str = "log-queue"
     HEARTBEAT_EXCHANGE_NAME: str = "heartbeat-exchange"
+    HEARTBEAT_INTERVAL: int = 10
     HEARTBEAT_MESSAGE_TTL: int = 10
 
     # noinspection PyMethodParameters
