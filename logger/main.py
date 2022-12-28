@@ -18,6 +18,8 @@ def main():
     channel.queue_declare(queue=settings.LOG_QUEUE_NAME, durable=True)
 
     channel.basic_qos(prefetch_count=settings.QOS_PREFETCH_COUNT)
+
+    # todo: manual ack
     channel.basic_consume(queue=settings.LOG_QUEUE_NAME, on_message_callback=on_message_received)
 
     channel.start_consuming()
