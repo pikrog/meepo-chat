@@ -9,20 +9,25 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.api import setup_api
 from app.core.beacon import run_beacon
 from app.core.container import Container
-from app.core.database import test_database_connection
 from app.websocket.endpoint import websocket_endpoint
 
 
 async def _on_app_startup(container: Container, logger: logging.Logger):
+    settings = container.settings()
+
+    logger.info("Preparing advertising settings")
+    advertising_settings = await container.advertising_settings()
+
     logger.info("Testing database connection")
-    database = await container.database_connection()
-    await test_database_connection(database)
+    database_connection = await container.database_connection()
+    await database_connection.ping()
 
     logger.info("Testing broker connection")
     heartbeat_service = await container.heartbeat_service()
 
-    settings = container.settings()
-    await settings.auto_config(logger)
+    logger.info(f"The server name is \"{advertising_settings.SERVER_NAME}\"")
+    logger.info(f"The server will advertise itself as available at "
+                f"\"{advertising_settings.ADVERTISED_ADDRESS}:{advertising_settings.ADVERTISED_PORT}\"")
 
     logger.info("Initialization complete")
 
@@ -59,8 +64,10 @@ def get_app(container: Container, logger: logging.Logger):
     return _app
 
 
-def get_default_app():
-    return get_app(Container(), logging.getLogger("gunicorn.error"))
+def get_production_app():
+    container = Container()
+    logger = logging.getLogger("gunicorn.error")
+    return get_app(container, logger)
 
 
 if __name__ == "__main__":
