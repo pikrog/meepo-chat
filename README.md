@@ -17,6 +17,6 @@ On the worker nodes apply the `join` command printed from previously issued `doc
 
     $ docker join ...
 
-On any node:
+On any Swarm node:
 
     $ docker compose -f compose-chat-server.yml --env-file .env.chat-server.example -p chat-server-example up
