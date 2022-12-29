@@ -75,6 +75,5 @@ class Container(containers.DeclarativeContainer):
     heartbeat_service = providers.Factory(
         HeartbeatService,
         settings=settings,
-        chat_service=chat_service,
         heartbeat_exchange=heartbeat_exchange,
     )

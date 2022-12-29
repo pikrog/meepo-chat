@@ -5,18 +5,14 @@ from app.core.services.chat import ChatService
 
 
 class HeartbeatService:
-    def __init__(self, settings: Settings, chat_service: ChatService, heartbeat_exchange: HeartbeatExchange):
+    def __init__(self, settings: Settings, heartbeat_exchange: HeartbeatExchange):
         self.__settings = settings
-        self.__chat_service = chat_service
         self.__exchange = heartbeat_exchange
 
     def get_heartbeat_message(self):
-        num_clients = len(self.__chat_service.get_user_list())
         return HeartbeatMessage(
-            server_name=self.__settings.SERVER_NAME,
             advertised_address=self.__settings.ADVERTISED_ADDRESS,
-            num_clients=num_clients,
-            max_clients=self.__settings.MAX_CLIENTS,
+            advertised_port=self.__settings.ADVERTISED_PORT,
         )
 
     async def send_heartbeat(self):
