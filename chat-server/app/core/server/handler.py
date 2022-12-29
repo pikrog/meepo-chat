@@ -1,13 +1,13 @@
 from fastapi.encoders import jsonable_encoder
 
-from app.core.server.client import ChatClient, DisconnectException
+from app.core.server.client import AbstractChatClient, DisconnectException
 from app.core.models.chat import ChatMessageIn, ChatMessage, ChatMessageType
 from app.core.models.socket import SocketMessage, SocketOpcode
 from app.core.services.chat import ChatService, JoinError
 
 
 class ChatClientHandler:
-    def __init__(self, service: ChatService, client: ChatClient):
+    def __init__(self, service: ChatService, client: AbstractChatClient):
         self.__service = service
         self.__client = client
 

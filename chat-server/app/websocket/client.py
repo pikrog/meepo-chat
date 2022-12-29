@@ -1,10 +1,10 @@
 from starlette.websockets import WebSocket, WebSocketDisconnect
 
 from app.core.models.user import User
-from app.core.server.client import ChatClient, DisconnectException
+from app.core.server.client import AbstractChatClient, DisconnectException
 
 
-class WebSocketChatClient(ChatClient):
+class WebSocketChatClient(AbstractChatClient):
     def __init__(self, user: User, websocket: WebSocket):
         super().__init__(user)
         self.__websocket = websocket

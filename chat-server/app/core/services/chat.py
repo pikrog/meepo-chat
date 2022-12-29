@@ -6,7 +6,7 @@ from app.core.models.chat import ChatMessage, ChatMessageType
 from app.core.models.socket import SocketMessage
 from app.core.models.user import User
 from app.core.repositories.chat import ChatRepository
-from app.core.server.client import ChatClient
+from app.core.server.client import AbstractChatClient
 from app.core.server.group import ChatClientGroup
 
 
@@ -63,7 +63,7 @@ class ChatService:
     def is_user_in_list(self, user: User):
         return self.__group.is_user_in_list(user)
 
-    async def join(self, client: ChatClient):
+    async def join(self, client: AbstractChatClient):
         if self.__group.is_user_in_list(client.user):
             raise AlreadyInRoomError
         if len(self.__group.get_user_list()) >= self.__settings.MAX_CLIENTS:
@@ -72,7 +72,7 @@ class ChatService:
         self.__group.add_client(client)
         await self._send_join_message(client.user)
 
-    async def leave(self, client: ChatClient):
+    async def leave(self, client: AbstractChatClient):
         user_was_in_list = self.__group.remove_client(client)
         if user_was_in_list:
             await self._send_leave_message(client.user)
