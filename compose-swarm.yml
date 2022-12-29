@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+    mq:
+        image: rabbitmq:3.11.5
+        restart: unless-stopped
+        networks:
+          - meepo-chat-network
+        ports:
+          # amqp
+          - target: 5672
+            published: 5672
+            protocol: tcp
+          # management console
+          - target: 15672
+            published: 15672
+            protocol: tcp
+        #env_file:
+        #  - ./.env.rabbitmq
+        environment:
+            RABBITMQ_DEFAULT_USER: "user"
+            RABBITMQ_DEFAULT_PASS: "password"
+    logger:
+        image: meepo-logger:latest
+        restart: unless-stopped
+        networks:
+          - meepo-chat-network
+        #env_file:
+        #  - ./logger/.env.docker
+        environment:
+            BROKER_URL: "amqp://user:password@mq"
+            LOG_QUEUE_NAME: "log-queue"
+    # master-server:
+    # front-end:
+
+networks:
+    # this network has to be created manually via CLI
+    # $ docker network create -d overlay --attachable meepo-chat-network
+    meepo-chat-network:
+        driver: overlay
+        external: True
+        attachable: True
