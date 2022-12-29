@@ -1,6 +1,9 @@
+import logging
 from typing import List, Union
 
 from pydantic import AnyHttpUrl, AnyUrl, BaseSettings, validator, AmqpDsn
+
+from app.core.ip import get_external_ip_info
 
 
 class Settings(BaseSettings):
@@ -9,9 +12,11 @@ class Settings(BaseSettings):
 
     JWT_SECRET: str
 
-    SERVER_NAME: str
+    IP_API: AnyHttpUrl
+    SERVER_NAME: str | None = None
+    SERVER_PORT: int = 8000
+    ADVERTISED_ADDRESS: str | None = None
     MAX_CLIENTS: int = 100
-    ADVERTISED_ADDRESS: str
 
     REDIS_URL: AnyUrl
     REDIS_CHAT_STREAM: str = "chat-events"
@@ -34,3 +39,15 @@ class Settings(BaseSettings):
 
     class Config:
         case_sensitive = True
+
+    async def auto_config(self, logger: logging.Logger):
+        if self.ADVERTISED_ADDRESS is None or self.SERVER_NAME is None:
+            logger.info("Acquiring external IP info")
+            ip, country, city = await get_external_ip_info(self.IP_API)
+            logger.info(f"The server is located in {city}, {country}. The external IP is {ip}")
+            if self.SERVER_NAME is None:
+                self.SERVER_NAME = f"{city}, {country}"
+                logger.info(f"Automatically set server name to \"{self.SERVER_NAME}\"")
+            if self.ADVERTISED_ADDRESS is None:
+                self.ADVERTISED_ADDRESS = f"{ip}:{self.SERVER_PORT}"
+                logger.info(f"Automatically set advertised address to \"{self.ADVERTISED_ADDRESS}\"")

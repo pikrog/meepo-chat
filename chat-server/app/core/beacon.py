@@ -1,10 +1,9 @@
 import asyncio
 import logging
 
-from dependency_injector.wiring import Provide, inject
+from dependency_injector.wiring import inject
 
 from app.core.config import Settings
-from app.core.container import Container
 from app.core.services.heartbeat import HeartbeatService
 
 

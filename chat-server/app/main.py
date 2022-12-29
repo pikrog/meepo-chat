@@ -13,18 +13,19 @@ from app.core.database import test_database_connection
 from app.websocket.endpoint import websocket_endpoint
 
 
-async def on_app_startup(container: Container, logger=logging.getLogger("uvicorn")):
+async def _on_app_startup(container: Container, logger=logging.getLogger("uvicorn")):
     logger.info("Testing database connection")
     database = await container.database_connection()
     await test_database_connection(database)
 
     logger.info("Testing broker connection")
     heartbeat_service = await container.heartbeat_service()
-    await heartbeat_service.send_heartbeat()
+
+    settings = container.settings()
+    await settings.auto_config(logger)
 
     logger.info("Initialization complete")
 
-    settings = container.settings()
     asyncio.create_task(
         run_beacon(
             logger=logger,
@@ -33,9 +34,7 @@ async def on_app_startup(container: Container, logger=logging.getLogger("uvicorn
     )
 
 
-def get_app():
-    container = Container()
-
+def get_app(container: Container):
     settings = container.settings()
 
     _app = FastAPI(title=settings.PROJECT_NAME)
@@ -54,10 +53,16 @@ def get_app():
 
     _app.add_api_websocket_route("/ws", websocket_endpoint)
 
-    _app.add_event_handler("startup", partial(on_app_startup, container))
+    _app.add_event_handler("startup", partial(_on_app_startup, container))
 
     return _app
 
 
+def get_default_app():
+    return get_app(Container())
+
+
 if __name__ == "__main__":
-    uvicorn.run(get_app, factory=True)
+    _container = Container()
+    port = _container.settings().SERVER_PORT
+    uvicorn.run(partial(get_app, _container), factory=True, port=port)
