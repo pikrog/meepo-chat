@@ -32,5 +32,6 @@ COPY --chown=python:python ./app ./app
 
 ENV PATH="${APP_PATH}/venv/bin:$PATH"
 
-# todo: allow arbitrary server ports/bind addresses
+ENV SERVER_PORT="80"
+EXPOSE 80/tcp
 CMD ["gunicorn", "--worker-class", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:80", "app.main:get_default_app()"]

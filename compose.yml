@@ -1,17 +1,26 @@
+# Use this compose to locally test the system
+
 services:
     chat-server:
-        image: chat-server:latest
+        image: meepo-chat-server:latest
         build: ./chat-server/
+        restart: unless-stopped
         networks:
           - main-network
         ports:
           - target: 80
-            published: 80
+            published: ${ADVERTISED_PORT}
             protocol: tcp
         env_file:
-          - ./chat-server/.env.docker
+          - .env
+        depends_on:
+            mq:
+                condition: service_healthy
+            db:
+                condition: service_started
     db:
         image: redis:7.0.5-bullseye
+        restart: unless-stopped
         networks:
           - main-network
         ports:
@@ -20,6 +29,7 @@ services:
             protocol: tcp
     mq:
         image: rabbitmq:3.11.5
+        restart: unless-stopped
         networks:
           - main-network
         ports:
@@ -32,7 +42,25 @@ services:
             published: 15672
             protocol: tcp
         env_file:
-          - .env.rabbitmq
+          - .env
+        healthcheck:
+            test: ["CMD", "rabbitmqctl", "list_queues"]
+            interval: 10s
+            timeout: 8s
+            retries: 5
+    logger:
+        image: meepo-logger:latest
+        build: ./logger/
+        restart: unless-stopped
+        networks:
+          - main-network
+        env_file:
+          - .env
+        depends_on:
+            mq:
+                condition: service_healthy
+    # master-server:
+    # front-end:
             
 networks:
     main-network:
