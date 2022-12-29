@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     SERVER_NAME: str | None = None
     SERVER_PORT: int = 8000
     ADVERTISED_ADDRESS: str | None = None
+    ADVERTISED_PORT: int | None = None
     MAX_CLIENTS: int = 100
 
     REDIS_URL: AnyUrl
@@ -41,13 +42,16 @@ class Settings(BaseSettings):
         case_sensitive = True
 
     async def auto_config(self, logger: logging.Logger):
+        if self.ADVERTISED_PORT is None:
+            self.ADVERTISED_PORT = self.SERVER_PORT
         if self.ADVERTISED_ADDRESS is None or self.SERVER_NAME is None:
             logger.info("Acquiring external IP info")
             ip, country, city = await get_external_ip_info(self.IP_API)
             logger.info(f"The server is located in {city}, {country}. The external IP is {ip}")
             if self.SERVER_NAME is None:
                 self.SERVER_NAME = f"{city}, {country}"
-                logger.info(f"Automatically set server name to \"{self.SERVER_NAME}\"")
             if self.ADVERTISED_ADDRESS is None:
-                self.ADVERTISED_ADDRESS = f"{ip}:{self.SERVER_PORT}"
-                logger.info(f"Automatically set advertised address to \"{self.ADVERTISED_ADDRESS}\"")
+                self.ADVERTISED_ADDRESS = f"{ip}"
+        logger.info(f"The server name is \"{self.SERVER_NAME}\"")
+        logger.info(f"The server will advertise itself as available at "
+                    f"\"{self.ADVERTISED_ADDRESS}:{self.ADVERTISED_PORT}\"")
