@@ -1,7 +1,7 @@
 import logging
 from typing import List, Union
 
-from pydantic import AnyHttpUrl, AnyUrl, BaseSettings, validator, AmqpDsn
+from pydantic import AnyHttpUrl, AnyUrl, BaseSettings, validator, AmqpDsn, BaseModel
 
 from app.core.ip import get_external_ip_info
 
@@ -41,17 +41,29 @@ class Settings(BaseSettings):
     class Config:
         case_sensitive = True
 
-    async def auto_config(self, logger: logging.Logger):
-        if self.ADVERTISED_PORT is None:
-            self.ADVERTISED_PORT = self.SERVER_PORT
-        if self.ADVERTISED_ADDRESS is None or self.SERVER_NAME is None:
-            logger.info("Acquiring external IP info")
-            ip, country, city = await get_external_ip_info(self.IP_API)
-            logger.info(f"The server is located in {city}, {country}. The external IP is {ip}")
-            if self.SERVER_NAME is None:
-                self.SERVER_NAME = f"{city}, {country}"
-            if self.ADVERTISED_ADDRESS is None:
-                self.ADVERTISED_ADDRESS = f"{ip}"
-        logger.info(f"The server name is \"{self.SERVER_NAME}\"")
-        logger.info(f"The server will advertise itself as available at "
-                    f"\"{self.ADVERTISED_ADDRESS}:{self.ADVERTISED_PORT}\"")
+
+class AdvertisingSettings(BaseModel):
+    SERVER_NAME: str
+    ADVERTISED_ADDRESS: str
+    ADVERTISED_PORT: int
+
+    @staticmethod
+    async def from_basic_settings(basic_settings: Settings):
+        advertised_port = basic_settings.ADVERTISED_PORT
+        if advertised_port is None:
+            advertised_port = basic_settings.SERVER_PORT
+
+        advertised_address = basic_settings.ADVERTISED_ADDRESS
+        server_name = basic_settings.SERVER_NAME
+        if advertised_address is None or server_name is None:
+            ip, country, city = await get_external_ip_info(basic_settings.IP_API)
+            if server_name is None:
+                server_name = f"{city}, {country}"
+            if advertised_address is None:
+                advertised_address = f"{ip}"
+
+        return AdvertisingSettings(
+            SERVER_NAME=server_name,
+            ADVERTISED_ADDRESS=advertised_address,
+            ADVERTISED_PORT=advertised_port,
+        )

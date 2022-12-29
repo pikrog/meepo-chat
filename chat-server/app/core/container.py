@@ -1,7 +1,7 @@
 from dependency_injector import containers, providers
 
 from app.core import database, broker
-from app.core.config import Settings
+from app.core.config import Settings, AdvertisingSettings
 from app.core.exchanges.heartbeat import HeartbeatExchange
 from app.core.exchanges.log import LogExchange
 from app.core.repositories.chat import ChatRepository
@@ -20,6 +20,11 @@ class Container(containers.DeclarativeContainer):
 
     settings = providers.Singleton(
         Settings
+    )
+
+    advertising_settings = providers.Singleton(
+        AdvertisingSettings.from_basic_settings,
+        basic_settings=settings,
     )
 
     database_pool = providers.Resource(
@@ -74,6 +79,6 @@ class Container(containers.DeclarativeContainer):
 
     heartbeat_service = providers.Factory(
         HeartbeatService,
-        settings=settings,
+        advertising_settings=advertising_settings,
         heartbeat_exchange=heartbeat_exchange,
     )
