@@ -1,15 +1,24 @@
 from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends
 
+from app.core.config import Settings
 from app.core.container import Container
+from app.core.models.info import ServerInfo
+from app.core.services.chat import ChatService
 from app.core.services.heartbeat import HeartbeatService
 
 router = APIRouter(prefix="/server")
 
 
-@router.get("/heartbeat")
+@router.get("/info")
 @inject
-async def get_chat_messages(
-    heartbeat_service: HeartbeatService = Depends(Provide[Container.heartbeat_service])
+async def get_server_info(
+        settings: Settings = Depends(Provide[Container.settings]),
+        chat_service: ChatService = Depends(Provide[Container.chat_service])
 ):
-    return heartbeat_service.get_heartbeat_message()
+    num_clients = len(chat_service.get_user_list())
+    return ServerInfo(
+        server_name=settings.SERVER_NAME,
+        num_clients=num_clients,
+        max_clients=settings.MAX_CLIENTS,
+    )
