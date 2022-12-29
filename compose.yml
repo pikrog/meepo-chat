@@ -16,9 +16,9 @@ services:
         depends_on:
             mq:
                 condition: service_healthy
-            db:
+            chat-server-db:
                 condition: service_started
-    db:
+    chat-server-db:
         image: redis:7.0.5-bullseye
         restart: unless-stopped
         networks:
