@@ -1,7 +1,5 @@
 from abc import ABC, abstractmethod
 
-from app.core.models.user import User
-
 
 class DisconnectException(Exception):
     def __init__(self):

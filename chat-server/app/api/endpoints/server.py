@@ -5,7 +5,6 @@ from app.core.config import Settings, AdvertisingSettings
 from app.core.container import Container
 from app.core.models.info import ServerInfo
 from app.core.services.chat import ChatService
-from app.core.services.heartbeat import HeartbeatService
 
 router = APIRouter(prefix="/server")
 

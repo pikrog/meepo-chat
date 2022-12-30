@@ -1,6 +1,5 @@
 from dependency_injector.wiring import inject, Provide
-from fastapi import APIRouter, Depends, HTTPException
-from starlette import status
+from fastapi import APIRouter, Depends
 
 from app.core.container import Container
 from app.core.models.chat import ChatMessage, ChatMessageIn, ChatMessageType
@@ -36,6 +35,7 @@ async def send_chat_message(
 ):
     if not chat_service.is_user_in_list(user):
         raise UserNotInRoomError
+
     message = ChatMessage(
         type=ChatMessageType.chat,
         sender=user.name,
