@@ -136,7 +136,6 @@ async def main() -> None:
         # Binding the queue to the exchange
         await queue.bind(heartbeat_exchange)
 
-        # Start listening the queue
         await queue.consume(on_message)
 
         print(" [*] Waiting for logs. To exit press CTRL+C")
