@@ -5,7 +5,7 @@ from starlette.websockets import WebSocket
 
 from app.core.container import Container
 from app.core.models.socket import SocketMessage
-from app.core.security.auth import get_user, get_token_from_cookie, CredentialsError
+from app.core.security.auth import get_user, CredentialsError, get_token_from_query_param
 from app.core.server.handler import ChatClientHandler
 from app.core.services.chat import ChatService
 from app.websocket.client import WebSocketChatClient
@@ -14,7 +14,7 @@ from app.websocket.client import WebSocketChatClient
 @inject
 async def websocket_endpoint(
     websocket: WebSocket,
-    access_token: str | None = Depends(get_token_from_cookie),
+    access_token: str | None = Depends(get_token_from_query_param),
     chat_service: ChatService = Depends(Provide[Container.chat_service]),
 ):
     await websocket.accept()

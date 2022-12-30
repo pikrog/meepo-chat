@@ -1,5 +1,5 @@
 from dependency_injector.wiring import inject, Provide
-from fastapi import Cookie, Depends
+from fastapi import Cookie, Depends, Query
 from jose import jwt, JWTError
 
 from app.core.config import Settings
@@ -24,6 +24,10 @@ class NoCredentialsError(CredentialsError):
 
 
 def get_token_from_cookie(access_token: str | None = Cookie(default=None)):
+    return access_token
+
+
+def get_token_from_query_param(access_token: str | None = Query(default=None)):
     return access_token
 
 
