@@ -1,0 +1,35 @@
+services:
+    chat-server:
+        image: meepo-chat-server:latest
+        build: ./chat-server/
+        restart: unless-stopped
+        networks:
+          - internal-network
+          - meepo-chat-network
+        ports:
+          - target: 80
+            published: ${ADVERTISED_PORT}
+            protocol: tcp
+        env_file:
+          - .env.chat-server.base
+        environment:
+            ADVERTISED_ADDRESS: ${ADVERTISED_ADDRESS}
+            ADVERTISED_PORT: ${ADVERTISED_PORT}
+            SERVER_NAME: ${SERVER_NAME}
+    db:
+        image: redis:7.0.5-bullseye
+        networks:
+          - internal-network
+        ports:
+          - target: 6379
+            published: 6379
+            protocol: tcp
+            
+networks:
+    internal-network:
+    # this network has to be created manually via CLI
+    # $ docker network create -d overlay --attachable meepo-chat-network
+    meepo-chat-network:
+        driver: overlay
+        external: True
+        attachable: True

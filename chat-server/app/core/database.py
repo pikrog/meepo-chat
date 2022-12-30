@@ -14,12 +14,3 @@ async def get_connection_pool(settings: Settings):
 
 def get_connection(pool: ConnectionPool):
     return Redis(connection_pool=pool)
-
-
-async def test_database_connection(connection: Redis, logger=logging.getLogger(__name__)):
-    logger.info("Testing database connection...")
-    try:
-        await connection.ping()
-    except ConnectionError as exc:
-        logger.exception("Connection failed", exc_info=exc)
-        raise

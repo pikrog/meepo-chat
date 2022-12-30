@@ -1,6 +1,9 @@
+import logging
 from typing import List, Union
 
-from pydantic import AnyHttpUrl, AnyUrl, BaseSettings, validator, AmqpDsn
+from pydantic import AnyHttpUrl, AnyUrl, BaseSettings, validator, AmqpDsn, BaseModel
+
+from app.core.ip import get_external_ip_info
 
 
 class Settings(BaseSettings):
@@ -9,9 +12,12 @@ class Settings(BaseSettings):
 
     JWT_SECRET: str
 
-    SERVER_NAME: str
+    IP_API: AnyHttpUrl
+    SERVER_NAME: str | None = None
+    SERVER_PORT: int = 8000
+    ADVERTISED_ADDRESS: str | None = None
+    ADVERTISED_PORT: int | None = None
     MAX_CLIENTS: int = 100
-    ADVERTISED_ADDRESS: str
 
     REDIS_URL: AnyUrl
     REDIS_CHAT_STREAM: str = "chat-events"
@@ -34,3 +40,30 @@ class Settings(BaseSettings):
 
     class Config:
         case_sensitive = True
+
+
+class AdvertisingSettings(BaseModel):
+    SERVER_NAME: str
+    ADVERTISED_ADDRESS: str
+    ADVERTISED_PORT: int
+
+    @staticmethod
+    async def from_basic_settings(basic_settings: Settings):
+        advertised_port = basic_settings.ADVERTISED_PORT
+        if advertised_port is None:
+            advertised_port = basic_settings.SERVER_PORT
+
+        advertised_address = basic_settings.ADVERTISED_ADDRESS
+        server_name = basic_settings.SERVER_NAME
+        if advertised_address is None or server_name is None:
+            ip, country, city = await get_external_ip_info(basic_settings.IP_API)
+            if server_name is None:
+                server_name = f"{city}, {country}"
+            if advertised_address is None:
+                advertised_address = f"{ip}"
+
+        return AdvertisingSettings(
+            SERVER_NAME=server_name,
+            ADVERTISED_ADDRESS=advertised_address,
+            ADVERTISED_PORT=advertised_port,
+        )

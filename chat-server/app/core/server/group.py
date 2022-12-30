@@ -1,17 +1,17 @@
 from fastapi.encoders import jsonable_encoder
 
-from app.core.server.client import ChatClient, DisconnectException
+from app.core.server.client import AbstractChatClient, DisconnectException
 from app.core.models.user import User
 
 
 class ChatClientGroup:
     def __init__(self):
-        self.__clients: set[ChatClient] = set()
+        self.__clients: set[AbstractChatClient] = set()
 
-    def add_client(self, client: ChatClient):
+    def add_client(self, client: AbstractChatClient):
         self.__clients.add(client)
 
-    def remove_client(self, client: ChatClient):
+    def remove_client(self, client: AbstractChatClient):
         if client not in self.__clients:
             return False
         self.__clients.remove(client)

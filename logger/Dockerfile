@@ -1,4 +1,4 @@
-ARG APP_PATH="/usr/local/chat-server"
+ARG APP_PATH="/usr/local/meepo-logger"
 
 ######################################################
 # build
@@ -32,6 +32,4 @@ COPY --chown=python:python ./app ./app
 
 ENV PATH="${APP_PATH}/venv/bin:$PATH"
 
-ENV SERVER_PORT="80"
-EXPOSE 80/tcp
-CMD ["gunicorn", "--worker-class", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:80", "app.main:get_production_app()"]
+CMD ["python", "app/main.py"]
