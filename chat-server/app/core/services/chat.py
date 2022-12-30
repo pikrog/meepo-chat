@@ -58,21 +58,24 @@ class ChatService:
         return await self.__repository.get_messages()
 
     def get_user_list(self):
-        return self.__group.get_user_list()
+        return list(self.__group.get_user_list_view())
 
     def is_user_in_list(self, user: User):
-        return self.__group.is_user_in_list(user)
+        return user in self.__group.get_user_list_view()
 
-    async def join(self, client: AbstractChatClient):
-        if self.__group.is_user_in_list(client.user):
+    def get_num_clients(self):
+        return len(self.__group.get_client_list_view())
+
+    async def join(self, client: AbstractChatClient, user: User):
+        if self.is_user_in_list(user):
             raise AlreadyInRoomError
-        if len(self.__group.get_user_list()) >= self.__settings.MAX_CLIENTS:
+        if self.get_num_clients() >= self.__settings.MAX_CLIENTS:
             raise FullRoomError
 
-        self.__group.add_client(client)
-        await self._send_join_message(client.user)
+        self.__group.add_client(client, user)
+        await self._send_join_message(user)
 
     async def leave(self, client: AbstractChatClient):
-        user_was_in_list = self.__group.remove_client(client)
-        if user_was_in_list:
-            await self._send_leave_message(client.user)
+        user = self.__group.remove_client(client)
+        if user is not None:
+            await self._send_leave_message(user)

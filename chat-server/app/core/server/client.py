@@ -9,9 +9,6 @@ class DisconnectException(Exception):
 
 
 class AbstractChatClient(ABC):
-    def __init__(self, user: User):
-        self.user = user
-
     @abstractmethod
     async def close(self):
         raise NotImplementedError

@@ -8,6 +8,7 @@ from app.core.models.user import User
 
 
 class SocketOpcode(str, Enum):
+    auth = "auth"
     heartbeat = "heartbeat"
     user_list = "user_list"
     quit = "quit"
@@ -38,3 +39,11 @@ class SocketMessage(BaseModel):
     @staticmethod
     def create_quit(message: str = "unknown reason"):
         return SocketMessage(opcode=SocketOpcode.quit, data=message)
+
+    @staticmethod
+    def create_auth_request():
+        return SocketMessage(opcode=SocketOpcode.auth, data="request")
+
+    @staticmethod
+    def create_auth_success():
+        return SocketMessage(opcode=SocketOpcode.auth, data="success")
