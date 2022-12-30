@@ -16,7 +16,7 @@ class UserNotInRoomError(Exception):
         super().__init__("the user is not in the room")
 
 
-@router.get("/messages", dependencies=[Depends(get_user)])
+@router.get("/messages")
 @inject
 async def get_chat_messages(
     chat_service: ChatService = Depends(Provide[Container.chat_service]),
