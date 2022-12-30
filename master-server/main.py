@@ -18,6 +18,8 @@ import asyncio
 
 from aio_pika import ExchangeType, connect
 from aio_pika.abc import AbstractIncomingMessage
+from ast import literal_eval
+from dependency_injector.wiring import Provide, inject
 
 
 models.Base.metadata.create_all(bind=engine)
@@ -66,7 +68,6 @@ def generate_token(userid:int, username:str):
 @app.post("/login")
 def login(LoginDTO: LoginDTO, db: Session = Depends(get_db)):
     DB_user = db.query(models.User).filter(models.User.login == LoginDTO.login).first()
-    #DB_Login = "DB Login"
     if(DB_user is None):
         raise HTTPException(status_code=400, detail="Incorrect data")
     
@@ -89,26 +90,51 @@ def create_user(RegisterDTO: RegisterDTO, db: Session = Depends(get_db)):
 @app.get("/servers/")
 def read_servers(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return db.query(models.Server).offset(skip).limit(limit).all()
+
+
+def upsert_server(Address: str, Port: int):
+    db = SessionLocal()
+    address = f"{Address}:{Port}"
+    DB_server = db.query(models.Server).filter(models.Server.address == address).first()
+    if( DB_server is None):
+        new_server = models.Server(address=address, name=address, updated_at=datetime.datetime.utcnow())
+        db.add(new_server)
+        db.commit()
+        db.refresh(new_server)    
+    else:
+        DB_server.updated_at = datetime.datetime.utcnow()
+        db.commit()
+        db.refresh(DB_server)
+    db.close()
+
+
 async def on_message(message: AbstractIncomingMessage) -> None:
     async with message.process():
-        print(f"[x] {message.body!r}")
+        initial_server_data = message.body.decode("utf-8")
+        server_data = literal_eval(initial_server_data)
+        upsert_server(server_data["advertised_address"], server_data["advertised_port"])
+        
 
 
 async def main() -> None:
     # Perform connection
     settings = get_settings()
-    connection = await connect(settings.BROKER_URL)
+    connection = await connect("amqp://user:password@localhost")
 
     async with connection:
         # Creating a channel
         channel = await connection.channel()
         await channel.set_qos(prefetch_count=1)
 
-        
+        heartbeat_exchange = await channel.declare_exchange(
+            "heartbeat-exchange", ExchangeType.FANOUT,
+        )
 
         # Declaring queue
         queue = await channel.declare_queue(exclusive=True)
 
+        # Binding the queue to the exchange
+        await queue.bind(heartbeat_exchange)
 
         # Start listening the queue
         await queue.consume(on_message)
@@ -116,7 +142,8 @@ async def main() -> None:
         print(" [*] Waiting for logs. To exit press CTRL+C")
         await asyncio.Future()
 
+async def f():
+    asyncio.create_task(main())
+app.add_event_handler("startup", f)
 
-if __name__ == "__main__":
-    asyncio.run(main())
 
