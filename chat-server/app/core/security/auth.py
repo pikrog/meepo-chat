@@ -1,6 +1,6 @@
 from dependency_injector.wiring import inject, Provide
 from fastapi import Cookie, Depends, Query
-from jose import jwt, JWTError
+from jose import jwt, JWTError, ExpiredSignatureError
 
 from app.core.config import Settings
 from app.core.container import Container
@@ -16,6 +16,11 @@ class CredentialsError(Exception):
 class InvalidCredentialsError(CredentialsError):
     def __init__(self):
         super().__init__("invalid credentials were provided")
+
+
+class CredentialsExpiredError(CredentialsError):
+    def __init__(self):
+        super().__init__("credentials expired")
 
 
 class NoCredentialsError(CredentialsError):
@@ -39,10 +44,13 @@ def get_user(
     if token is None or not token:
         raise NoCredentialsError
     try:
-        decoded_token = jwt.decode(token, settings.JWT_SECRET)
+        decoded_token = jwt.decode(token, settings.JWT_SECRET, issuer=settings.JWT_ISSUER)
         payload = JwtPayload(**decoded_token)
         return User(
-            name=payload.username
+            id=payload.user_id,
+            name=payload.user_name,
         )
+    except ExpiredSignatureError:
+        raise CredentialsExpiredError
     except JWTError:
         raise InvalidCredentialsError

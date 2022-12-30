@@ -33,6 +33,7 @@ class ChatClientHandler:
             chat_message = ChatMessage(
                 type=ChatMessageType.chat,
                 sender=self.__user.name,
+                sender_id=self.__user.id,
                 text=message_in.text
             )
             await self.__service.send_message(chat_message)

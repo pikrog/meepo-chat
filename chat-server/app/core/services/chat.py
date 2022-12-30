@@ -39,11 +39,19 @@ class ChatService:
         self.__log_exchange = log_exchange
 
     async def _send_join_message(self, joining_user: User):
-        message = ChatMessage(type=ChatMessageType.join, sender=joining_user.name)
+        message = ChatMessage(
+            type=ChatMessageType.join,
+            sender=joining_user.name,
+            sender_id=joining_user.id
+        )
         await self.send_message(message)
 
     async def _send_leave_message(self, leaving_user: User):
-        message = ChatMessage(type=ChatMessageType.leave, sender=leaving_user.name)
+        message = ChatMessage(
+            type=ChatMessageType.leave,
+            sender=leaving_user.name,
+            sender_id=leaving_user.id
+        )
         await self.send_message(message)
 
     async def send_message(self, message: ChatMessage):

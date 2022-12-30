@@ -19,6 +19,7 @@ class ChatMessage(BaseModel):
     id: str | None = None
     type: ChatMessageType
     sender: str | None = None
+    sender_id: int | None = None
     timestamp: datetime
     text: str | None = None
 

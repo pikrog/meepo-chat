@@ -2,4 +2,5 @@ from pydantic import BaseModel
 
 
 class JwtPayload(BaseModel):
-    username: str
+    user_id: int
+    user_name: str
