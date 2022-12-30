@@ -6,34 +6,33 @@ from app.core.models.user import User
 
 class ChatClientGroup:
     def __init__(self):
-        self.__clients: set[AbstractChatClient] = set()
+        self.__clients: dict[AbstractChatClient, User] = dict()
 
-    def add_client(self, client: AbstractChatClient):
-        self.__clients.add(client)
+    def add_client(self, client: AbstractChatClient, user: User):
+        self.__clients[client] = user
 
-    def remove_client(self, client: AbstractChatClient):
-        if client not in self.__clients:
-            return False
-        self.__clients.remove(client)
-        return True
+    def remove_client(self, client: AbstractChatClient) -> User | None:
+        try:
+            user = self.__clients[client]
+            self.__clients.pop(client)
+            return user
+        except KeyError:
+            return None
 
-    def get_user_list(self):
-        return [client.user for client in self.__clients]
+    def get_client_list_view(self):
+        return self.__clients.keys()
 
-    def is_user_in_list(self, user: User):
-        return next((client for client in self.__clients if client.user.name == user.name), None) is not None
+    def get_user_list_view(self):
+        return self.__clients.values()
 
     async def send_message(self, message):
         await self._broadcast(message)
 
     async def _broadcast(self, message):
-        dead_clients = []
         serializable_message = jsonable_encoder(message, exclude_none=True)
         clients = self.__clients.copy()
-        for client in clients:
+        for client in clients.keys():
             try:
                 await client.send_json(serializable_message)
             except DisconnectException:
-                dead_clients.append(client)
-        for dead_client in dead_clients:
-            self.remove_client(dead_client)
+                pass

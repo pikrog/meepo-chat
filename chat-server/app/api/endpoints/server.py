@@ -17,9 +17,8 @@ async def get_server_info(
         advertising_settings: AdvertisingSettings = Depends(Provide[Container.advertising_settings]),
         chat_service: ChatService = Depends(Provide[Container.chat_service])
 ):
-    num_clients = len(chat_service.get_user_list())
     return ServerInfo(
         server_name=advertising_settings.SERVER_NAME,
-        num_clients=num_clients,
+        num_clients=chat_service.get_num_clients(),
         max_clients=settings.MAX_CLIENTS,
     )

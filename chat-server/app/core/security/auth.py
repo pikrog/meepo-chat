@@ -36,7 +36,7 @@ def get_user(
     token: str | None = Depends(get_token_from_cookie),
     settings: Settings = Depends(Provide[Container.settings])
 ):
-    if token is None:
+    if token is None or not token:
         raise NoCredentialsError
     try:
         decoded_token = jwt.decode(token, settings.JWT_SECRET)
