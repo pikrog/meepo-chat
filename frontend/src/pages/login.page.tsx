@@ -1,9 +1,9 @@
-import { A } from "@solidjs/router";
+import { A, useNavigate } from "@solidjs/router";
 import { Component, createSignal, Match, Switch } from "solid-js";
 
 import { AiFillEye } from "../components/icons/AiFillEye";
 import { AiFillEyeInvisible } from "../components/icons/AiFillEyeInvisible";
-import { kyLogin } from "../services/ky.service";
+import { postLogin } from "../services/ky.service";
 
 export type OnSubmitEvent = Event & {
   submitter: HTMLElement;
@@ -13,15 +13,18 @@ export type OnSubmitEvent = Event & {
 };
 
 export const LoginPage: Component = () => {
+  const navigate = useNavigate();
+
   const [login, setLogin] = createSignal("", { name: "login" });
   const [password, setPassword] = createSignal("", { name: "password" });
   const [isPasswordVisible, setIsPasswordVisible] = createSignal(false, {
     name: "IsPasswordVisible",
   });
 
-  const handleSubmit = (event: OnSubmitEvent) => {
+  const handleSubmit = async (event: OnSubmitEvent) => {
     event.preventDefault();
-    kyLogin(login(), password()).catch(console.error);
+    await postLogin({ login: login(), password: password() }).catch(console.error);
+    navigate('/select');
   };
 
   return (

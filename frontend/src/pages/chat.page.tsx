@@ -3,7 +3,7 @@ import { Component, createSignal, For, onMount, Show } from "solid-js";
 import { AiTwotoneSetting } from "../components/icons/AiTwotoneSetting";
 import { addEmojisToString } from "../lib/emojiMap";
 import { Message, OnInput, OnKeyPress, Ref } from "../types";
-import { getGlobalUser, setGlobalUser } from "../services/auth.service";
+import { getAccessToken, setAccessToken } from "../services/auth.service";
 import { SettingsModal } from "../components/SettingsModal";
 
 const users = [
@@ -31,7 +31,7 @@ export const ChatPage: Component = () => {
       name: "Gabryjiel",
     };
 
-    setGlobalUser(auth);
+    setAccessToken(auth);
   });
 
   const handleOnKeyPress: OnKeyPress = (event) => {
@@ -40,7 +40,7 @@ export const ChatPage: Component = () => {
 
       const newMessage: Message = {
         id: 1,
-        user: getGlobalUser(),
+        user: getAccessToken(),
         content: message(),
         timestamp: new Date(),
       };

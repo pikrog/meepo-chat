@@ -1,11 +1,13 @@
-import { A } from "@solidjs/router";
-import { Component, createSignal, Match, Switch } from "solid-js";
+import { Component, createSignal, Match, onMount, Switch } from "solid-js";
+import { useNavigate } from '@solidjs/router'
 import { AiFillEye } from "../components/icons/AiFillEye";
 import { AiFillEyeInvisible } from "../components/icons/AiFillEyeInvisible";
-import { kyLogin } from "../services/ky.service";
+import { setAccessToken } from "../services/auth.service";
+import { postLogin, postRegister } from "../services/ky.service";
 import { OnSubmitEvent } from "./login.page";
 
 export const RegisterPage: Component = () => {
+  const navigate = useNavigate();
   const [login, setLogin] = createSignal("", { name: "login" });
   const [password, setPassword] = createSignal("", { name: "password" });
   const [passwordConfirm, setPasswordConfirm] = createSignal("", { name: "passwordConfirm" });
@@ -13,9 +15,17 @@ export const RegisterPage: Component = () => {
     name: "IsPasswordVisible",
   });
 
-  const handleSubmit = (event: OnSubmitEvent) => {
+  const handleSubmit = async (event: OnSubmitEvent) => {
     event.preventDefault();
-    kyLogin(login(), password()).catch(console.error);
+
+    try {
+      await postRegister({login: login(), password: password(), passwordConfirm: passwordConfirm()});
+      const loginResponse = await postLogin({login: login(), password: password() });
+      setAccessToken(loginResponse.access_token);
+      navigate('/select');
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (

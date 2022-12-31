@@ -7,11 +7,16 @@ type LoginDto = {
   password: string;
 }
 
-export const kyLogin = async (loginDto: LoginDto) => {
-  await ky.post("auth/login", {
+type LoginResponse = {
+  access_token: string;
+};
+
+export const postLogin = async (loginDto: LoginDto) => {
+  const response = await ky.post("auth/login", {
     body: JSON.stringify(loginDto),
   });
-  return true;
+
+  return response.json<LoginResponse>();
 };
 
 type RegisterDto = {
@@ -20,10 +25,27 @@ type RegisterDto = {
   passwordConfirm: string;
 };
 
-export const postRegister = async (registerDto: RegisterDto) => {
-  await ky.post("auth/register", {
-    body: JSON.stringify(registerDto)
-  })
+type RegisterResponse = {
+  userId: number;
+  login: string;
+};
 
-  return true;
+export const postRegister = async (registerDto: RegisterDto) => {
+  const response = await ky.post("auth/register", {
+    body: JSON.stringify(registerDto)
+  });
+
+  return response.json<RegisterResponse>()
+};
+
+export type GetServer = {
+  serverId: number;
+  address: string;
+  name: string;
+};
+
+export const getServers = async () => {
+  const response = await ky.get("/servers");
+
+  return response.json<GetServer[]>();
 };
