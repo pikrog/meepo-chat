@@ -1,6 +1,9 @@
+import logging
+
 from dependency_injector import containers, providers
 
 from app.core import database, broker
+from app.core.beacon import run_beacon
 from app.core.config import Settings, AdvertisingSettings
 from app.core.exchanges.heartbeat import HeartbeatExchange
 from app.core.exchanges.log import LogExchange
@@ -52,7 +55,7 @@ class Container(containers.DeclarativeContainer):
         settings=settings
     )
 
-    broker_channel = providers.Factory(
+    broker_channel = providers.Singleton(
         broker.get_channel,
         connection=broker_connection
     )
@@ -66,6 +69,7 @@ class Container(containers.DeclarativeContainer):
     chat_service = providers.Factory(
         ChatService,
         settings=settings,
+        advertising_settings=advertising_settings,
         repository=chat_repository,
         group=client_group,
         log_exchange=log_exchange,
@@ -81,4 +85,16 @@ class Container(containers.DeclarativeContainer):
         HeartbeatService,
         advertising_settings=advertising_settings,
         heartbeat_exchange=heartbeat_exchange,
+    )
+
+    logger = providers.Singleton(
+        logging.getLogger,
+        name="uvicorn",
+    )
+
+    beacon = providers.Coroutine(
+        run_beacon,
+        logger=logger,
+        heartbeat_service=heartbeat_service,
+        settings=settings,
     )

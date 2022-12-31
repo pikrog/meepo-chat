@@ -1,9 +1,9 @@
 from fastapi.encoders import jsonable_encoder
 
-from app.core.models.user import User
-from app.core.server.client import AbstractChatClient, DisconnectException
 from app.core.models.chat import ChatMessageIn, ChatMessage, ChatMessageType
 from app.core.models.socket import SocketMessage, SocketOpcode
+from app.core.models.user import User
+from app.core.server.client import AbstractChatClient
 from app.core.services.chat import ChatService, JoinError
 
 
@@ -33,6 +33,7 @@ class ChatClientHandler:
             chat_message = ChatMessage(
                 type=ChatMessageType.chat,
                 sender=self.__user.name,
+                sender_id=self.__user.id,
                 text=message_in.text
             )
             await self.__service.send_message(chat_message)

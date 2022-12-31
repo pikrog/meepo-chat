@@ -5,7 +5,7 @@ from aio_pika.abc import AbstractRobustExchange, AbstractRobustQueue, DeliveryMo
 from fastapi.encoders import jsonable_encoder
 
 from app.core.config import Settings
-from app.core.models.chat import ChatMessage
+from app.core.models.chat import LoggedChatMessage
 
 
 class LogExchange:
@@ -33,9 +33,8 @@ class LogExchange:
         )
         return LogExchange(exchange, queue)
 
-    async def publish(self, chat_message: ChatMessage):
+    async def publish(self, chat_message: LoggedChatMessage):
         serialized_message = json.dumps(jsonable_encoder(chat_message, exclude_none=True)).encode("utf-8")
-        # todo: publisher acks & queue overflow
         await self.__exchange.publish(
             Message(
                 body=serialized_message,

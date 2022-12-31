@@ -1,4 +1,3 @@
-import logging
 from typing import List, Union
 
 from pydantic import AnyHttpUrl, AnyUrl, BaseSettings, validator, AmqpDsn, BaseModel
@@ -11,6 +10,7 @@ class Settings(BaseSettings):
     BACKEND_CORS_ORIGINS: List[AnyUrl] = []
 
     JWT_SECRET: str
+    JWT_ISSUER: str = "master-server"
 
     IP_API: AnyHttpUrl
     SERVER_NAME: str | None = None

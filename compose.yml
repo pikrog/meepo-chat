@@ -59,8 +59,26 @@ services:
         depends_on:
             mq:
                 condition: service_healthy
+    main-db:
+        image: postgres:15.0
+        restart: unless-stopped
+        networks:
+          - main-network
+        volumes:
+          - type: volume
+            source: postgres-data
+            target: /var/lib/postgresql/data
+        ports:
+          - published: 5432
+            target: 5432
+            protocol: tcp
+        env_file:
+          - .env
     # master-server:
     # front-end:
             
 networks:
     main-network:
+    
+volumes:
+    postgres-data:

@@ -1,7 +1,4 @@
-import logging
-
 from redis.asyncio import Redis, ConnectionPool
-from redis.exceptions import ConnectionError
 
 from app.core.config import Settings
 

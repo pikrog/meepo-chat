@@ -1,8 +1,8 @@
 import asyncio
 
-from app.core.config import Settings
+from app.core.config import Settings, AdvertisingSettings
 from app.core.exchanges.log import LogExchange
-from app.core.models.chat import ChatMessage, ChatMessageType
+from app.core.models.chat import ChatMessage, ChatMessageType, LoggedChatMessage
 from app.core.models.socket import SocketMessage
 from app.core.models.user import User
 from app.core.repositories.chat import ChatRepository
@@ -29,33 +29,52 @@ class ChatService:
     def __init__(
             self,
             settings: Settings,
+            advertising_settings: AdvertisingSettings,
             repository: ChatRepository,
             group: ChatClientGroup,
             log_exchange: LogExchange
     ):
         self.__settings = settings
+        self.__advertising_settings = advertising_settings
         self.__repository = repository
         self.__group = group
         self.__log_exchange = log_exchange
 
     async def _send_join_message(self, joining_user: User):
-        message = ChatMessage(type=ChatMessageType.join, sender=joining_user.name)
+        message = ChatMessage(
+            type=ChatMessageType.join,
+            sender=joining_user.name,
+            sender_id=joining_user.id
+        )
         await self.send_message(message)
 
     async def _send_leave_message(self, leaving_user: User):
-        message = ChatMessage(type=ChatMessageType.leave, sender=leaving_user.name)
+        message = ChatMessage(
+            type=ChatMessageType.leave,
+            sender=leaving_user.name,
+            sender_id=leaving_user.id
+        )
         await self.send_message(message)
 
     async def send_message(self, message: ChatMessage):
+        logged_message = LoggedChatMessage.from_chat_message(
+            message,
+            self.__advertising_settings.ADVERTISED_ADDRESS,
+            self.__advertising_settings.ADVERTISED_PORT
+        )
         await asyncio.gather(
             self.__repository.append_message(message),
-            self.__log_exchange.publish(message),
+            self.__log_exchange.publish(logged_message),
         )
         socket_message = SocketMessage.from_chat_message(message)
         await self.__group.send_message(socket_message)
 
-    async def get_messages(self):
-        return await self.__repository.get_messages()
+    async def get_messages(
+            self,
+            start_id: str | int | bytes | None = None,
+            count: int | None = None
+    ):
+        return await self.__repository.get_messages(start_id, count)
 
     def get_user_list(self):
         return list(self.__group.get_user_list_view())
