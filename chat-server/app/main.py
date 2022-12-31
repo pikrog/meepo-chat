@@ -3,17 +3,17 @@ import logging
 from functools import partial
 
 import uvicorn
+from dependency_injector import providers
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.api import setup_api
-from app.core.beacon import run_beacon
 from app.core.container import Container
 from app.websocket.endpoint import websocket_endpoint
 
 
-async def _on_app_startup(container: Container, logger: logging.Logger):
-    settings = container.settings()
+async def _on_app_startup(container: Container):
+    logger = container.logger()
 
     logger.info("Preparing advertising settings")
     advertising_settings = await container.advertising_settings()
@@ -24,6 +24,7 @@ async def _on_app_startup(container: Container, logger: logging.Logger):
 
     logger.info("Testing broker connection")
     heartbeat_service = await container.heartbeat_service()
+    await heartbeat_service.send_heartbeat()
 
     logger.info(f"The server name is \"{advertising_settings.SERVER_NAME}\"")
     logger.info(f"The server will advertise itself as available at "
@@ -31,16 +32,11 @@ async def _on_app_startup(container: Container, logger: logging.Logger):
 
     logger.info("Initialization complete")
 
-    asyncio.create_task(
-        run_beacon(
-            logger=logger,
-            heartbeat_service=heartbeat_service,
-            settings=settings
-        )
-    )
+    beacon_coroutine = await container.beacon()
+    asyncio.create_task(beacon_coroutine)
 
 
-def get_app(container: Container, logger: logging.Logger):
+def get_app(container: Container):
     settings = container.settings()
 
     _app = FastAPI(title=settings.PROJECT_NAME)
@@ -59,19 +55,21 @@ def get_app(container: Container, logger: logging.Logger):
 
     _app.add_api_websocket_route("/ws", websocket_endpoint)
 
-    _app.add_event_handler("startup", partial(_on_app_startup, container, logger))
+    _app.add_event_handler("startup", partial(_on_app_startup, container))
 
     return _app
 
 
 def get_production_app():
     container = Container()
-    logger = logging.getLogger("gunicorn.error")
-    return get_app(container, logger)
+    container.logger.override(providers.Singleton(
+        logging.getLogger,
+        name="gunicorn.error"
+    ))
+    return get_app(container)
 
 
 if __name__ == "__main__":
     _container = Container()
-    _logger = logging.getLogger("uvicorn")
     port = _container.settings().SERVER_PORT
-    uvicorn.run(partial(get_app, _container, _logger), factory=True, port=port)
+    uvicorn.run(partial(get_app, _container), factory=True, port=port)
