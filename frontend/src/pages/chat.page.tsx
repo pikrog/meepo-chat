@@ -4,6 +4,7 @@ import { AiTwotoneSetting } from "../components/icons/AiTwotoneSetting";
 import { addEmojisToString } from "../lib/emojiMap";
 import { Message, OnInput, OnKeyPress, Ref } from "../types";
 import { getGlobalUser, setGlobalUser } from "../services/auth.service";
+import { SettingsModal } from "../components/SettingsModal";
 
 const users = [
   { id: 1, name: "user1" },
@@ -17,7 +18,7 @@ export const ChatPage: Component = () => {
     name: "messages",
   });
   const [message, setMessage] = createSignal("", { name: "message" });
-  const [isModalOpen, setIsModalOpen] = createSignal(false, {
+  const [isModalOpen, setIsModalOpen] = createSignal(true, {
     name: "isModalOpen",
   });
 
@@ -106,19 +107,7 @@ export const ChatPage: Component = () => {
       </aside>
 
       <Show when={isModalOpen() === true}>
-        <div
-          onClick={handleEventToggle}
-          class="absolute flex h-screen w-screen items-center justify-center"
-          style={{ "background-color": "rgba(0,0,0,0.67)" }}
-        >
-          <div
-            class="h-2/3 w-2/3 rounded-lg border-4 border-stone-800 bg-stone-500 opacity-100"
-            onClick={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-            }}
-          />
-        </div>
+        <SettingsModal closeModal={handleEventToggle} />
       </Show>
     </div>
   );
