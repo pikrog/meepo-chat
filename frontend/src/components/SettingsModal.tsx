@@ -1,5 +1,6 @@
 import { useNavigate } from "@solidjs/router";
 import { Component, createSignal, For, Match, Switch } from "solid-js";
+import { disconnectFromWebSocket } from "../services/websocket.service";
 import { Button } from "./Button";
 
 export const SettingsModal: Component<{
@@ -25,6 +26,7 @@ export const SettingsModal: Component<{
 
   const handleDisconnectClick = (event: MouseEvent) => {
     props.closeModal(event);
+    disconnectFromWebSocket();
     navigate('/select');
   };
 

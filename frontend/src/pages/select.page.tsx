@@ -7,6 +7,7 @@ import { setServerAddress } from "../services/chat.service";
 import { type GetServer } from "../services/ky.service";
 
 import MeepoChatLogo from '../../public/meepo-chat-logo.png';
+import { setNewWebSocket } from "../services/websocket.service";
 
 export type OnSubmitEvent = Event & {
   submitter: HTMLElement;
@@ -25,8 +26,14 @@ export const SelectPage: Component = () => {
   ], { name: "servers" });
 
   const handleServerChoice = async (serverAddress: string) => {
-    setServerAddress(serverAddress);
-    navigate('/chat');
+    console.log(serverAddress);
+    try {
+      setServerAddress(serverAddress);
+      await setNewWebSocket(serverAddress)
+      navigate('/chat');
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const handleLogout = () => {
