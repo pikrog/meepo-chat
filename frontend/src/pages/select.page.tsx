@@ -1,10 +1,12 @@
-import { A, useNavigate } from "@solidjs/router";
-import { Component, createSignal, For, Match, onMount, Switch } from "solid-js";
+import { useNavigate } from "@solidjs/router";
+import { Component, createSignal, For, onMount } from "solid-js";
+import { Button } from "../components/Button";
 
-import { AiFillEye } from "../components/icons/AiFillEye";
-import { AiFillEyeInvisible } from "../components/icons/AiFillEyeInvisible";
+import { setAccessToken } from "../services/auth.service";
 import { setServerAddress } from "../services/chat.service";
-import { type GetServer, getServers } from "../services/ky.service";
+import { type GetServer } from "../services/ky.service";
+
+import MeepoChatLogo from '../../public/meepo-chat-logo.png';
 
 export type OnSubmitEvent = Event & {
   submitter: HTMLElement;
@@ -27,6 +29,11 @@ export const SelectPage: Component = () => {
     navigate('/chat');
   };
 
+  const handleLogout = () => {
+    setAccessToken('');
+    navigate('/login');
+  };
+
   onMount(async () => {
     // const response = await getServers()
     // setServers(response);
@@ -35,9 +42,9 @@ export const SelectPage: Component = () => {
   return (
     <div class="grid h-screen w-screen place-items-center">
       <div
-        class="flex h-3/5 w-1/2 flex-col items-center justify-evenly gap-2 rounded-lg border-4 border-stone-600 bg-stone-200 p-8"
+        class="flex h-4/5 w-1/2 flex-col items-center justify-evenly gap-2 rounded-lg border-4 border-stone-600 bg-stone-200 p-8"
       >
-        <div>Logo</div>
+        <img src={MeepoChatLogo} alt="Meepo Chat Logo" />
         <div class="flex w-full flex-col gap-2 overflow-hidden">
           <div class="w-full text-center">
             <span class="font-bold text-xl">Wybierz serwer</span>
@@ -51,6 +58,9 @@ export const SelectPage: Component = () => {
                 </div>
               )}
             </For>
+          </div>
+          <div class="w-full flex justify-center">
+            <Button onClick={handleLogout} text="Wyloguj się" />
           </div>
         </div>
       </div>

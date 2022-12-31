@@ -1,4 +1,6 @@
+import { useNavigate } from "@solidjs/router";
 import { Component, createSignal, For, Match, Switch } from "solid-js";
+import { Button } from "./Button";
 
 export const SettingsModal: Component<{
   closeModal: (event: MouseEvent) => void;
@@ -8,6 +10,7 @@ export const SettingsModal: Component<{
     { id: "account", label: "Konto" },
   ] as const;
 
+  const navigate = useNavigate();
   const servers = ["Ohio", "Frankfurt", "Sydney"] as const;
 
   type Tabs = typeof tabs[number]["id"];
@@ -19,6 +22,11 @@ export const SettingsModal: Component<{
       name: "selectedServer",
     }
   );
+
+  const handleDisconnectClick = (event: MouseEvent) => {
+    props.closeModal(event);
+    navigate('/select');
+  };
 
   return (
     <div
@@ -71,19 +79,15 @@ export const SettingsModal: Component<{
               </div>
               <div class="h-2/12 pt-2">
                 <div class="flex h-full w-full items-center justify-around">
-                  <button class="h-16 w-32 rounded-lg border-4 border-stone-900 bg-lime-700 text-xl font-bold text-stone-200 hover:brightness-105">
-                    Rozłącz
-                  </button>
-                  <button
-                    class={`h-16 w-32 rounded-lg border-4 border-stone-900 text-xl font-bold text-stone-200 ${
-                      selectedServer() === null
-                        ? "border-stone-400 bg-stone-300 text-stone-400"
-                        : "bg-lime-700 hover:brightness-105"
-                    }`}
+                  <Button 
+                    onClick={handleDisconnectClick}
+                    text="Rozłącz"
+                  />
+                  <Button 
+                    onClick={() => {}}
+                    text="Połącz"
                     disabled={selectedServer() === null}
-                  >
-                    Połącz
-                  </button>
+                  />
                 </div>
               </div>
             </Match>

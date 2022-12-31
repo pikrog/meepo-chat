@@ -4,7 +4,9 @@ import { AiFillEye } from "../components/icons/AiFillEye";
 import { AiFillEyeInvisible } from "../components/icons/AiFillEyeInvisible";
 import { setAccessToken } from "../services/auth.service";
 import { postLogin, postRegister } from "../services/ky.service";
-import { OnSubmitEvent } from "./login.page";
+
+import MeepoChatLogo from '../../public/meepo-chat-logo.png';
+import { Button } from "../components/Button";
 
 export const RegisterPage: Component = () => {
   const navigate = useNavigate();
@@ -15,7 +17,7 @@ export const RegisterPage: Component = () => {
     name: "IsPasswordVisible",
   });
 
-  const handleSubmit = async (event: OnSubmitEvent) => {
+  const handleSubmit = async (event: MouseEvent) => {
     event.preventDefault();
 
     try {
@@ -31,10 +33,9 @@ export const RegisterPage: Component = () => {
   return (
     <div class="grid h-screen w-screen place-items-center">
       <form
-        class="flex h-3/5 w-1/2 flex-col items-center justify-evenly gap-2 rounded-lg border-4 border-stone-600 bg-stone-200 p-8"
-        onSubmit={handleSubmit}
+        class="flex h-4/5 w-1/2 flex-col items-center justify-evenly gap-2 rounded-lg border-4 border-stone-600 bg-stone-200 p-8"
       >
-        <div>Logo</div>
+        <img src={MeepoChatLogo} alt="Meepo Chat Logo" />
         <div class="flex w-full flex-col gap-2">
           <input
             class="w-full rounded-lg border-4 border-stone-600 p-2 indent-2 text-xl font-bold focus:border-lime-600 accent-lime-600"
@@ -91,12 +92,10 @@ export const RegisterPage: Component = () => {
             </div>
           </div>
         </div>
-        <button
-          class="w-64 rounded-lg border-4 border-lime-900 bg-lime-500 py-2 text-xl font-bold text-lime-900 hover:text-lime-700 hover:border-lime-700"
-          type="submit"
-        >
-          Zarejestruj się
-        </button>
+        <Button
+          onClick={handleSubmit}
+          text="Zarejestruj się"
+        />
       </form>
     </div>
   )

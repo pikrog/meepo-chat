@@ -5,12 +5,8 @@ import { AiFillEye } from "../components/icons/AiFillEye";
 import { AiFillEyeInvisible } from "../components/icons/AiFillEyeInvisible";
 import { postLogin } from "../services/ky.service";
 
-export type OnSubmitEvent = Event & {
-  submitter: HTMLElement;
-} & {
-  currentTarget: HTMLFormElement;
-  target: Element;
-};
+import MeepoChatLogo from '../../public/meepo-chat-logo.png';
+import { Button } from "../components/Button";
 
 export const LoginPage: Component = () => {
   const navigate = useNavigate();
@@ -21,7 +17,7 @@ export const LoginPage: Component = () => {
     name: "IsPasswordVisible",
   });
 
-  const handleSubmit = async (event: OnSubmitEvent) => {
+  const handleSubmit = async (event: MouseEvent) => {
     event.preventDefault();
     await postLogin({ login: login(), password: password() }).catch(console.error);
     navigate('/select');
@@ -30,10 +26,9 @@ export const LoginPage: Component = () => {
   return (
     <div class="grid h-screen w-screen place-items-center">
       <form
-        class="flex h-3/5 w-1/2 flex-col items-center justify-evenly gap-2 rounded-lg border-4 border-stone-600 bg-stone-200 p-8"
-        onSubmit={handleSubmit}
+        class="flex h-4/5 w-1/2 flex-col items-center justify-evenly gap-2 rounded-lg border-4 border-stone-600 bg-stone-200 p-8"
       >
-        <div>Logo</div>
+        <img src={MeepoChatLogo} alt="Meepo Chat Logo" />
         <div class="flex w-full flex-col gap-2">
           <input
             class="w-full rounded-lg border-4 border-stone-600 p-2 indent-2 text-xl font-bold focus:border-lime-600 accent-lime-600"
@@ -67,12 +62,7 @@ export const LoginPage: Component = () => {
             </div>
           </div>
         </div>
-        <button
-          class="w-64 rounded-lg border-4 border-lime-900 bg-lime-500 py-2 text-xl font-bold text-lime-900 hover:text-lime-700 hover:border-lime-700"
-          type="submit"
-        >
-          Zaloguj się
-        </button>
+        <Button text="Zaloguj się" onClick={handleSubmit} />
         <A href="/register" class="text-lime-900 hover:text-lime-700">Nie masz konta? Zarejestruj się</A>
       </form>
     </div>

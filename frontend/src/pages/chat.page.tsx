@@ -18,21 +18,12 @@ export const ChatPage: Component = () => {
     name: "messages",
   });
   const [message, setMessage] = createSignal("", { name: "message" });
-  const [isModalOpen, setIsModalOpen] = createSignal(true, {
+  const [isModalOpen, setIsModalOpen] = createSignal(false, {
     name: "isModalOpen",
   });
 
   // eslint-disable-next-line prefer-const
   let ref: Ref<HTMLDivElement> = null;
-
-  onMount(() => {
-    const auth = {
-      id: 12,
-      name: "Gabryjiel",
-    };
-
-    setAccessToken(auth);
-  });
 
   const handleOnKeyPress: OnKeyPress = (event) => {
     if (event.key === "Enter" && event.shiftKey === false) {
@@ -40,7 +31,7 @@ export const ChatPage: Component = () => {
 
       const newMessage: Message = {
         id: 1,
-        user: getAccessToken(),
+        user: {id: 1, name: 'me'},
         content: message(),
         timestamp: new Date(),
       };
