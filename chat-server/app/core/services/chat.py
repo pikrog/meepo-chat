@@ -1,8 +1,8 @@
 import asyncio
 
-from app.core.config import Settings
+from app.core.config import Settings, AdvertisingSettings
 from app.core.exchanges.log import LogExchange
-from app.core.models.chat import ChatMessage, ChatMessageType
+from app.core.models.chat import ChatMessage, ChatMessageType, LoggedChatMessage
 from app.core.models.socket import SocketMessage
 from app.core.models.user import User
 from app.core.repositories.chat import ChatRepository
@@ -29,11 +29,13 @@ class ChatService:
     def __init__(
             self,
             settings: Settings,
+            advertising_settings: AdvertisingSettings,
             repository: ChatRepository,
             group: ChatClientGroup,
             log_exchange: LogExchange
     ):
         self.__settings = settings
+        self.__advertising_settings = advertising_settings
         self.__repository = repository
         self.__group = group
         self.__log_exchange = log_exchange
@@ -55,9 +57,14 @@ class ChatService:
         await self.send_message(message)
 
     async def send_message(self, message: ChatMessage):
+        logged_message = LoggedChatMessage.from_chat_message(
+            message,
+            self.__advertising_settings.ADVERTISED_ADDRESS,
+            self.__advertising_settings.ADVERTISED_PORT
+        )
         await asyncio.gather(
             self.__repository.append_message(message),
-            self.__log_exchange.publish(message),
+            self.__log_exchange.publish(logged_message),
         )
         socket_message = SocketMessage.from_chat_message(message)
         await self.__group.send_message(socket_message)

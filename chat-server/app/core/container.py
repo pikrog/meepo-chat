@@ -66,6 +66,7 @@ class Container(containers.DeclarativeContainer):
     chat_service = providers.Factory(
         ChatService,
         settings=settings,
+        advertising_settings=advertising_settings,
         repository=chat_repository,
         group=client_group,
         log_exchange=log_exchange,
