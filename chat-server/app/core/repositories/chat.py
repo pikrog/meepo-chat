@@ -16,6 +16,12 @@ class ChatRepository:
             fields=jsonable_encoder(message, exclude_unset=True, exclude={"id"})
         )
 
-    async def get_messages(self):
-        messages = await self.__redis.xrange(self.__messages_stream)
+    async def get_messages(
+            self,
+            start_id: str | int | bytes | None = None,
+            count: int | None = None
+    ):
+        if start_id is None:
+            start_id = "+"
+        messages = await self.__redis.xrevrange(self.__messages_stream, max=start_id, count=count)
         return [ChatMessage(**m[1], id=m[0]) for m in messages]

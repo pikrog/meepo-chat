@@ -62,8 +62,12 @@ class ChatService:
         socket_message = SocketMessage.from_chat_message(message)
         await self.__group.send_message(socket_message)
 
-    async def get_messages(self):
-        return await self.__repository.get_messages()
+    async def get_messages(
+            self,
+            start_id: str | int | bytes | None = None,
+            count: int | None = None
+    ):
+        return await self.__repository.get_messages(start_id, count)
 
     def get_user_list(self):
         return list(self.__group.get_user_list_view())
