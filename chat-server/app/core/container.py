@@ -52,7 +52,7 @@ class Container(containers.DeclarativeContainer):
         settings=settings
     )
 
-    broker_channel = providers.Factory(
+    broker_channel = providers.Singleton(
         broker.get_channel,
         connection=broker_connection
     )
