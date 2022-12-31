@@ -1,11 +1,14 @@
-import { Component, createSignal, For, onMount, Show } from "solid-js";
+import { Component, createSignal, For, onMount, Show, onCleanup } from "solid-js";
 
 import { AiTwotoneSetting } from "../components/icons/AiTwotoneSetting";
 import { addEmojisToString } from "../lib/emojiMap";
-import { Message, OnInput, OnKeyPress, Ref, WSMessage } from "../types";
+import { Message, OnInput, OnKeyPress, Ref, TextChatMessage, WSMessage } from "../types";
 import { getAccessToken, setAccessToken } from "../services/auth.service";
 import { SettingsModal } from "../components/SettingsModal";
-import { getWebSocket, sendChatMessage } from "../services/websocket.service";
+import { disconnectFromWebSocket, getUserList, getWebSocket, sendChatMessage, setNewWebSocket } from "../services/websocket.service";
+import { getServerMessage } from "../services/ky.service";
+import { getServerAddress } from "../services/chat.service";
+import { getFromLocalStorage } from "../services/local-storage.service";
 
 const users = [
   { id: 1, name: "user1" },
@@ -22,13 +25,31 @@ export const ChatPage: Component = () => {
   const [isModalOpen, setIsModalOpen] = createSignal(false, {
     name: "isModalOpen",
   });
+  const [userList, setUserList] = createSignal<string[]>([], { name: "userList" })
 
-  const websocket = getWebSocket();
+  let websocket = getWebSocket();
 
-  websocket.onmessage = (message: MessageEvent<string>) => {
+  const handleWebSocketMessage = (message: MessageEvent<string>) => {
     const data = JSON.parse(message.data) as WSMessage;
-    setMessages((prev) => prev.concat([data]));
-  };
+    
+    if (data.opcode === 'chat') {
+      if (data.data.type === 'leave') {
+        setUserList((prev) => prev.filter((name) => name !== data.data.sender));
+      } else if (data.data.type === 'join') {
+        setUserList((prev) => prev.concat([data.data.sender]));
+      }
+    }
+
+    if (data.opcode === 'user_list') {
+      setUserList(data.data.map((item) => item.name));
+    } else {
+      setMessages((prev) => prev.concat([data]));
+    }
+  }
+
+  if (websocket) {
+    websocket.onmessage = handleWebSocketMessage;
+  }
 
   // eslint-disable-next-line prefer-const
   let ref: Ref<HTMLDivElement> = null;
@@ -36,13 +57,6 @@ export const ChatPage: Component = () => {
   const handleOnKeyPress: OnKeyPress = (event) => {
     if (event.key === "Enter" && event.shiftKey === false) {
       event.preventDefault();
-
-      const newMessage: Message = {
-        id: 1,
-        user: {id: 1, name: 'me'},
-        content: text(),
-        timestamp: new Date(),
-      };
 
       sendChatMessage(text());
       setText("");
@@ -60,6 +74,33 @@ export const ChatPage: Component = () => {
     event.preventDefault();
     setIsModalOpen((prev) => !prev);
   };
+
+  onMount(async () => {
+    if (!websocket) {
+      websocket = await setNewWebSocket(getServerAddress());
+      websocket.onmessage = handleWebSocketMessage;
+    }
+    getUserList(websocket);
+
+    const response = await getServerMessage(getServerAddress());
+    const worthyMessages: WSMessage[] = response
+      .filter((message) => message.type === 'chat' && message.text !== null)
+      .map((message) => ({
+        opcode: 'chat',
+        data: {
+          type: 'chat',
+          sender: message.sender,
+          text: message.text,
+          timestamp: message.timestamp
+        },
+      }))
+    console.log(worthyMessages)
+    setMessages((prev) => worthyMessages.concat(prev));
+  });
+
+  onCleanup(() => {
+    disconnectFromWebSocket();
+  })
 
   return (
     <div class="flex h-screen w-screen">
@@ -130,8 +171,8 @@ export const ChatPage: Component = () => {
       <aside class="flex h-full w-48 flex-col border-l-2 border-stone-700 indent-2">
         <div class="h-11/12">
           <div class="font-bold">Lista użytkowników</div>
-          <For each={users} fallback={<div>No other users</div>}>
-            {(item) => <div id={`aside-user-${item.id}`}>{item.name}</div>}
+          <For each={userList()} fallback={<div>No other users</div>}>
+            {(item) => <div id={`aside-user-${item}`}>{item}</div>}
           </For>
         </div>
         <div class="flex h-1/12 items-center justify-center">

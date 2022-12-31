@@ -5,7 +5,7 @@ export const [getWebSocket, setWebSocket] = createSignal<null | WebSocket>(null,
   name: "websocket",
 });
 
-export function setNewWebSocket(serverAddress: string) {
+export function setNewWebSocket(serverAddress: string): Promise<WebSocket> {
   return new Promise((resolve, reject) => {
     const ws = setWebSocket(new WebSocket(`ws://${serverAddress}/ws?access_token=${getAccessToken()}`));
 
@@ -34,4 +34,8 @@ export function sendChatMessage(message: string) {
   if (ws) {
     ws.send(JSON.stringify({ opcode: 'chat', data: { text: message }}))
   }
+}
+
+export function getUserList(ws: WebSocket) {
+  ws.send(JSON.stringify({ opcode: 'user_list' }));
 }

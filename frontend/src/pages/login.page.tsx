@@ -8,6 +8,7 @@ import { postLogin } from "../services/ky.service";
 import MeepoChatLogo from '../../public/meepo-chat-logo.png';
 import { Button } from "../components/Button";
 import { setAccessToken } from "../services/auth.service";
+import { setInLocalStorage } from "../services/local-storage.service";
 
 export const LoginPage: Component = () => {
   const navigate = useNavigate();
@@ -22,6 +23,7 @@ export const LoginPage: Component = () => {
     event.preventDefault();
     const response = await postLogin({ login: login(), password: password() });
     setAccessToken(response.access_token);
+    setInLocalStorage('access_token', response.access_token);
     navigate('/select');
   };
 

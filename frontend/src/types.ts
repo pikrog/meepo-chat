@@ -58,4 +58,11 @@ export type LeaveChatMessage = {
   };
 }
 
-export type WSMessage = JoinChatMessage | TextChatMessage | LeaveChatMessage;
+export type UserListMessage = {
+  opcode: 'user_list';
+  data: {
+    name: string;
+  }[];
+}
+
+export type WSMessage = JoinChatMessage | TextChatMessage | LeaveChatMessage | UserListMessage;
