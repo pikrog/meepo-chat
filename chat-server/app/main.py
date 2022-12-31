@@ -8,11 +8,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.api import setup_api
+from app.core.beacon import run_beacon
 from app.core.container import Container
 from app.websocket.endpoint import websocket_endpoint
 
 
 async def _on_app_startup(container: Container):
+    settings = container.settings()
     logger = container.logger()
 
     logger.info("Preparing advertising settings")
@@ -32,8 +34,13 @@ async def _on_app_startup(container: Container):
 
     logger.info("Initialization complete")
 
-    beacon_coroutine = await container.beacon()
-    asyncio.create_task(beacon_coroutine)
+    asyncio.create_task(
+        run_beacon(
+            logger=logger,
+            heartbeat_service=heartbeat_service,
+            settings=settings
+        )
+    )
 
 
 def get_app(container: Container):
