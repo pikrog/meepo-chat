@@ -44,6 +44,7 @@ export const ChatPage: Component = () => {
       setUserList(data.data.map((item) => item.name));
     } else {
       setMessages((prev) => prev.concat([data]));
+      ref.scroll({ top: ref.scrollHeight });
     }
   }
 
@@ -60,7 +61,6 @@ export const ChatPage: Component = () => {
 
       sendChatMessage(text());
       setText("");
-      ref.scroll({ top: ref.scrollHeight });
     }
   };
 
@@ -93,12 +93,14 @@ export const ChatPage: Component = () => {
           text: message.text,
           timestamp: message.timestamp
         },
-      }))
-    console.log(worthyMessages)
+      }));
+    worthyMessages.reverse();
     setMessages((prev) => worthyMessages.concat(prev));
+    ref.scroll({ top: ref.scrollHeight });
   });
 
   onCleanup(() => {
+    console.log("END M<E")
     disconnectFromWebSocket();
   })
 
