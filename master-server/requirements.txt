@@ -1,0 +1,5 @@
+fastapi==0.88.0
+aio-pika==8.3.0
+bcrypt==4.0.1
+fastapi-jwt==0.1.8
+gunicorn==20.1.0

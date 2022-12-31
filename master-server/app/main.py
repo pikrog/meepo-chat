@@ -5,18 +5,17 @@ import app.models as models
 from app.database import SessionLocal, engine
 import jwt
 import datetime
-from app.settings import get_settings
+from app.settings import get_settings, Settings
 from aio_pika import ExchangeType, connect_robust
 from aio_pika.abc import AbstractIncomingMessage
 import json
 import bcrypt
+from app.list import get_server_list
 
 
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
-
-server_list = dict()
 
 
 class LoginDTO(BaseModel):
@@ -42,35 +41,32 @@ def generate_token(userid:int, username:str):
     now = datetime.datetime.utcnow()
     payload = {
         "iss":"master-server",
-        "exp":(now+datetime.timedelta(hours=24)).timestamp(),
+        "exp":(now + datetime.timedelta(hours=24)).timestamp(),
         "user_id": userid,
         "user_name": username
-
     }
     settings = get_settings()
     key = settings.JWT_SECRET
-    encoded=jwt.encode(payload, key, algorithm="HS256")
+    encoded = jwt.encode(payload, key, algorithm="HS256")
     return encoded
 
 
 @app.post("/login")
-def login(LoginDTO: LoginDTO, db: Session = Depends(get_db)):
-    DB_user = db.query(models.User).filter(models.User.login == LoginDTO.login).first()
-    if(DB_user is None):
+def login(login_dto: LoginDTO, db: Session = Depends(get_db)):
+    db_user = db.query(models.User).filter(models.User.login == login_dto.login).first()
+    if(db_user is None):
         raise HTTPException(status_code=400, detail="Incorrect data")
-    if not bcrypt.checkpw(LoginDTO.password.encode("utf-8"),DB_user.password):
+    if not bcrypt.checkpw(login_dto.password.encode("utf-8"), db_user.password):
         raise HTTPException(status_code=400, detail="Incorrect data")
-    # if(LoginDTO.password != DB_user.password):
-    #     raise HTTPException(status_code=400, detail="Incorrect data")
-    return generate_token(DB_user.id, DB_user.login)
+    return generate_token(db_user.id, db_user.login)
 
 
 @app.post("/register/")
-def create_user(RegisterDTO: RegisterDTO, db: Session = Depends(get_db)):
-    if(RegisterDTO.password != RegisterDTO.pass_comp):
+def create_user(register_dto: RegisterDTO, db: Session = Depends(get_db)):
+    if(register_dto.password != register_dto.pass_comp):
         raise HTTPException(status_code=400, detail="Incorrect data")
-    hashed_password = bcrypt.hashpw(RegisterDTO.password.encode("utf-8"),bcrypt.gensalt())
-    db_user = models.User(login=RegisterDTO.login, password=hashed_password)
+    hashed_password = bcrypt.hashpw(register_dto.password.encode("utf-8"), bcrypt.gensalt())
+    db_user = models.User(login=register_dto.login, password=hashed_password)
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
@@ -78,14 +74,15 @@ def create_user(RegisterDTO: RegisterDTO, db: Session = Depends(get_db)):
 
 
 @app.get("/servers/")
-def read_servers():
+def read_servers(settings: Settings = Depends(get_settings), server_list: dict = Depends(get_server_list)):
     current_time = datetime.datetime.utcnow()
-    filtered_list = filter(lambda item: item[1]+datetime.timedelta(seconds=10)>current_time,server_list.items())
+    filtered_list = filter(lambda item: item[1] + 
+        datetime.timedelta(seconds=settings.HEARTBEAT_RESPONSE_TIME) > current_time, server_list.items())
     filtered_list = dict(map(lambda item: (f"{item[0][0]}:{item[0][1]}", item[1]), filtered_list))
     return filtered_list
 
 
-def upsert_server(Address: str, Port: int): 
+def upsert_server(Address: str, Port: int, server_list: dict = get_server_list()): 
     server_list[(Address,Port)] = datetime.datetime.utcnow()
 
 
@@ -99,7 +96,6 @@ async def on_message(message: AbstractIncomingMessage) -> None:
 async def start_heartbeat_consume():
     settings = get_settings()
     connection = await connect_robust(settings.BROKER_URL)
-    # Creating a channel
     channel = await connection.channel()
     await channel.set_qos(prefetch_count=1)
 
