@@ -7,8 +7,8 @@ export const Button: Component<{
 }> = (props) => {
   return (
     <button 
-      class={`h-16 w-64 px-2 rounded-lg border-4 border-lime-900 ${
-        props.disabled ? 'border-stone-400 bg-stone-300 text-stone-400' : 'font-bold text-xl text-lime-900 hover:text-lime-700 bg-lime-500 hover:brightness-105'
+      class={`h-16 w-64 px-2 rounded-lg border-4 border-lime-900 font-bold text-xl ${
+        props.disabled ? 'border-stone-400 bg-stone-300 text-stone-400' : 'text-lime-900 hover:text-lime-700 bg-lime-500 hover:brightness-105'
       }`}
       onClick={props.onClick}
       disabled={props.disabled}
