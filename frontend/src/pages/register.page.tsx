@@ -1,20 +1,14 @@
 import { A } from "@solidjs/router";
 import { Component, createSignal, Match, Switch } from "solid-js";
-
 import { AiFillEye } from "../components/icons/AiFillEye";
 import { AiFillEyeInvisible } from "../components/icons/AiFillEyeInvisible";
 import { kyLogin } from "../services/ky.service";
+import { OnSubmitEvent } from "./login.page";
 
-export type OnSubmitEvent = Event & {
-  submitter: HTMLElement;
-} & {
-  currentTarget: HTMLFormElement;
-  target: Element;
-};
-
-export const LoginPage: Component = () => {
+export const RegisterPage: Component = () => {
   const [login, setLogin] = createSignal("", { name: "login" });
   const [password, setPassword] = createSignal("", { name: "password" });
+  const [passwordConfirm, setPasswordConfirm] = createSignal("", { name: "passwordConfirm" });
   const [isPasswordVisible, setIsPasswordVisible] = createSignal(false, {
     name: "IsPasswordVisible",
   });
@@ -63,15 +57,37 @@ export const LoginPage: Component = () => {
               </Switch>
             </div>
           </div>
+          <div class="relative">
+            <input
+              class="w-full rounded-lg border-4 border-stone-600 p-2 indent-2 text-xl font-bold focus:border-lime-600 accent-lime-600"
+              placeholder="Potwórz hasło"
+              name="passwordConfirm"
+              value={passwordConfirm()}
+              onChange={(event) => setPasswordConfirm(event.currentTarget.value)}
+              type={isPasswordVisible() ? "text" : "password"}
+            />
+            <div
+              class="absolute top-2.5 right-4 cursor-pointer"
+              onClick={() => setIsPasswordVisible((prev) => !prev)}
+            >
+              <Switch>
+                <Match when={isPasswordVisible() === true}>
+                  <AiFillEye width="2em" height="2em" />
+                </Match>
+                <Match when={isPasswordVisible() === false}>
+                  <AiFillEyeInvisible width="2em" height="2em" />
+                </Match>
+              </Switch>
+            </div>
+          </div>
         </div>
         <button
           class="w-64 rounded-lg border-4 border-lime-900 bg-lime-500 py-2 text-xl font-bold text-lime-900 hover:text-lime-700 hover:border-lime-700"
           type="submit"
         >
-          Zaloguj się
+          Zarejestruj się
         </button>
-        <A href="/register" class="text-lime-900 hover:text-lime-700">Nie masz konta? Zarejestruj się</A>
       </form>
     </div>
-  );
-};
+  )
+}
