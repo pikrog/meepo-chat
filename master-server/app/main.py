@@ -111,5 +111,10 @@ async def start_heartbeat_consume():
 
     await queue.consume(on_message)
 
+    app.mq_connection = connection
+    app.mq_channel = channel
+    app.mq_heartbeat_exchange = heartbeat_exchange
+    app.mq_heartbeat_queue = queue
+
 
 app.add_event_handler("startup", start_heartbeat_consume)
