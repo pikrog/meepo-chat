@@ -1,4 +1,4 @@
-ARG APP_PATH="/usr/local/meepo-logger"
+ARG APP_PATH="/usr/local/master-server"
 
 ######################################################
 # build
@@ -34,4 +34,5 @@ COPY --chown=python:python ./app ./app
 
 ENV PATH="${APP_PATH}/venv/bin:$PATH"
 
-CMD ["python", "app/main.py"]
+EXPOSE 80/tcp
+CMD ["gunicorn", "--worker-class", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:80", "app.main:app"]

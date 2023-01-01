@@ -5,7 +5,7 @@ from functools import lru_cache
 class Settings(BaseSettings):
     JWT_SECRET: str
     DATABASE_URL: str
-    BROKER_URL:str
+    BROKER_URL: str
     HEARTBEAT_EXCHANGE_NAME: str = "heartbeat-exchange"
     HEARTBEAT_RESPONSE_TIME: int = 30
 
