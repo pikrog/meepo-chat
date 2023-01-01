@@ -2,7 +2,7 @@ import enum
 
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Enum
 
-from app.database import Base, engine
+from database import Base, engine
 
 
 class User(Base):

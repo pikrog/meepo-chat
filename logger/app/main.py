@@ -6,8 +6,8 @@ import pika
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.database import SessionLocal
-from app.models import Message, MessageType, QueuedMessage, InvalidMessage
+from database import SessionLocal
+from models import Message, MessageType, QueuedMessage, InvalidMessage
 from settings import Settings
 
 
