@@ -1,6 +1,7 @@
+from sqlalchemy.exc import IntegrityError
 from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import app.models as models
 from app.database import SessionLocal, engine
 import jwt
@@ -17,15 +18,16 @@ models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-settings = get_settings()
+_settings = get_settings()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.BACKEND_CORS_ORIGINS,
+    allow_origins=_settings.BACKEND_CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 class LoginDTO(BaseModel):
     login: str
@@ -33,8 +35,8 @@ class LoginDTO(BaseModel):
 
 
 class RegisterDTO(BaseModel):
-    login: str
-    password: str
+    login: str = Field(..., min_length=3)
+    password: str = Field(..., min_length=6)
     pass_comp: str
 
 
@@ -64,22 +66,25 @@ def generate_token(userid: int, username: str):
 def login(login_dto: LoginDTO, db: Session = Depends(get_db)):
     db_user = db.query(models.User).filter(models.User.login == login_dto.login).first()
     if db_user is None:
-        raise HTTPException(status_code=400, detail="Incorrect data")
+        raise HTTPException(status_code=400, detail="Invalid credentials")
     if not bcrypt.checkpw(login_dto.password.encode("utf-8"), db_user.password.encode('utf-8')):
-        raise HTTPException(status_code=400, detail="Incorrect data")
+        raise HTTPException(status_code=400, detail="Invalid credentials")
     return {'access_token': generate_token(db_user.id, db_user.login)}
 
 
 @app.post("/register")
 def create_user(register_dto: RegisterDTO, db: Session = Depends(get_db)):
     if register_dto.password != register_dto.pass_comp:
-        raise HTTPException(status_code=400, detail="Incorrect data")
+        raise HTTPException(status_code=400, detail="Passwords do not match")
     hashed_password = bcrypt.hashpw(register_dto.password.encode('utf-8'), bcrypt.gensalt())
     db_user = models.User(login=register_dto.login, password=hashed_password.decode('utf-8'))
     db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    return {'id': db_user.id, 'login': db_user.login}
+    try:
+        db.commit()
+        db.refresh(db_user)
+        return {'id': db_user.id, 'login': db_user.login}
+    except IntegrityError:
+        raise HTTPException(status_code=400, detail="This user name is already taken")
 
 
 @app.get("/servers")
@@ -89,7 +94,12 @@ def read_servers(settings: Settings = Depends(get_settings), server_list: dict =
         lambda item: item[1] + datetime.timedelta(seconds=settings.HEARTBEAT_RESPONSE_TIME) > current_time,
         server_list.items()
     ))
-    mapped_list = list(map(lambda item: { 'address': f"{item[0][0]}:{item[0][1]}", 'last_heartbeat': item[1] }, filtered_list))
+    mapped_list = list(
+        map(
+            lambda item: {'address': f"{item[0][0]}:{item[0][1]}", 'last_heartbeat': item[1]},
+            filtered_list
+        )
+    )
     return mapped_list
 
 
