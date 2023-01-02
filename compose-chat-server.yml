@@ -1,6 +1,6 @@
 services:
     chat-server:
-        image: meepo-chat-server:latest
+        image: pikrog/meepo-chat-server:latest
         build: ./chat-server/
         restart: unless-stopped
         networks:

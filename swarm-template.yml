@@ -57,6 +57,8 @@ services:
           - published: 80
             target: 80
             protocol: tcp
+        environment:
+            VITE_MASTER_SERVER_URL: ${VITE_MASTER_SERVER_URL}
 
 networks:
     # this network has to be created manually via CLI

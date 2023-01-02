@@ -1,6 +1,8 @@
 version: "3.8"
 services:
   front-end:
+    environment:
+      VITE_MASTER_SERVER_URL: http://localhost:8080
     image: pikrog/meepo-front-end:latest
     ports:
     - target: 80
