@@ -93,7 +93,16 @@ services:
                 condition: service_healthy
             main-db:
                 condition: service_started
-    # front-end:
+    front-end:
+      image: apache
+      build: ./frontend/
+      restart: unless-stopped
+      networks:
+        - main-network
+      ports:
+        - published: 9999
+          target: 80
+          protocol: tcp
             
 networks:
     main-network:
