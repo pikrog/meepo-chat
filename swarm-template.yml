@@ -3,10 +3,10 @@ services:
         image: rabbitmq:3.11.5
         networks:
           - meepo-chat-network
-        ports:
-          - target: 5672
-            published: 5672
-            protocol: tcp
+        #ports:
+        #  - target: 5672
+        #    published: 5672
+        #    protocol: tcp
         environment:
             RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
             RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
@@ -25,10 +25,10 @@ services:
           - type: volume
             source: postgres-data
             target: /var/lib/postgresql/data
-        ports:
-          - published: 5432
-            target: 5432
-            protocol: tcp
+        #ports:
+        #  - published: 5432
+        #    target: 5432
+        #    protocol: tcp
         environment:
             POSTGRES_USER: ${POSTGRES_USER}
             POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -48,7 +48,15 @@ services:
             BROKER_URL: ${BROKER_URL}
             DATABASE_URL: ${DATABASE_URL}
             JWT_SECRET: ${JWT_SECRET}
-    # front-end:
+            BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS}
+    front-end:
+        image: pikrog/meepo-front-end:latest
+        #networks:
+        #  - meepo-chat-network
+        ports:
+          - published: 80
+            target: 80
+            protocol: tcp
 
 networks:
     # this network has to be created manually via CLI
