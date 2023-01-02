@@ -11,12 +11,25 @@ from aio_pika.abc import AbstractIncomingMessage
 import json
 import bcrypt
 from app.list import get_server_list
-
+from fastapi.middleware.cors import CORSMiddleware
 
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
+origins = [
+    "http://localhost",
+    "http://localhost:3000",
+    "http://localhost:9999",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class LoginDTO(BaseModel):
     login: str
@@ -56,32 +69,32 @@ def login(login_dto: LoginDTO, db: Session = Depends(get_db)):
     db_user = db.query(models.User).filter(models.User.login == login_dto.login).first()
     if db_user is None:
         raise HTTPException(status_code=400, detail="Incorrect data")
-    if not bcrypt.checkpw(login_dto.password.encode("utf-8"), db_user.password):
+    if not bcrypt.checkpw(login_dto.password.encode("utf-8"), db_user.password.encode('utf-8')):
         raise HTTPException(status_code=400, detail="Incorrect data")
-    return generate_token(db_user.id, db_user.login)
+    return {'access_token': generate_token(db_user.id, db_user.login)}
 
 
 @app.post("/register")
 def create_user(register_dto: RegisterDTO, db: Session = Depends(get_db)):
     if register_dto.password != register_dto.pass_comp:
         raise HTTPException(status_code=400, detail="Incorrect data")
-    hashed_password = bcrypt.hashpw(register_dto.password.encode("utf-8"), bcrypt.gensalt())
-    db_user = models.User(login=register_dto.login, password=hashed_password)
+    hashed_password = bcrypt.hashpw(register_dto.password.encode('utf-8'), bcrypt.gensalt())
+    db_user = models.User(login=register_dto.login, password=hashed_password.decode('utf-8'))
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
-    return db_user
+    return {'id': db_user.id, 'login': db_user.login}
 
 
 @app.get("/servers")
 def read_servers(settings: Settings = Depends(get_settings), server_list: dict = Depends(get_server_list)):
     current_time = datetime.datetime.utcnow()
-    filtered_list = filter(
+    filtered_list = list(filter(
         lambda item: item[1] + datetime.timedelta(seconds=settings.HEARTBEAT_RESPONSE_TIME) > current_time,
         server_list.items()
-    )
-    filtered_list = dict(map(lambda item: (f"{item[0][0]}:{item[0][1]}", item[1]), filtered_list))
-    return filtered_list
+    ))
+    mapped_list = list(map(lambda item: { 'address': f"{item[0][0]}:{item[0][1]}", 'last_heartbeat': item[1] }, filtered_list))
+    return mapped_list
 
 
 def upsert_server(address: str, port: int, server_list: dict = get_server_list()):
