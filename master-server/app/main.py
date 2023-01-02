@@ -1,6 +1,7 @@
+from sqlalchemy.exc import IntegrityError
 from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import app.models as models
 from app.database import SessionLocal, engine
 import jwt
@@ -11,11 +12,21 @@ from aio_pika.abc import AbstractIncomingMessage
 import json
 import bcrypt
 from app.list import get_server_list
-
+from fastapi.middleware.cors import CORSMiddleware
 
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+_settings = get_settings()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=_settings.BACKEND_CORS_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class LoginDTO(BaseModel):
@@ -24,8 +35,8 @@ class LoginDTO(BaseModel):
 
 
 class RegisterDTO(BaseModel):
-    login: str
-    password: str
+    login: str = Field(..., min_length=3)
+    password: str = Field(..., min_length=6)
     pass_comp: str
 
 
@@ -55,33 +66,41 @@ def generate_token(userid: int, username: str):
 def login(login_dto: LoginDTO, db: Session = Depends(get_db)):
     db_user = db.query(models.User).filter(models.User.login == login_dto.login).first()
     if db_user is None:
-        raise HTTPException(status_code=400, detail="Incorrect data")
-    if not bcrypt.checkpw(login_dto.password.encode("utf-8"), db_user.password):
-        raise HTTPException(status_code=400, detail="Incorrect data")
-    return generate_token(db_user.id, db_user.login)
+        raise HTTPException(status_code=400, detail="Invalid credentials")
+    if not bcrypt.checkpw(login_dto.password.encode("utf-8"), db_user.password.encode('utf-8')):
+        raise HTTPException(status_code=400, detail="Invalid credentials")
+    return {'access_token': generate_token(db_user.id, db_user.login)}
 
 
 @app.post("/register")
 def create_user(register_dto: RegisterDTO, db: Session = Depends(get_db)):
     if register_dto.password != register_dto.pass_comp:
-        raise HTTPException(status_code=400, detail="Incorrect data")
-    hashed_password = bcrypt.hashpw(register_dto.password.encode("utf-8"), bcrypt.gensalt())
-    db_user = models.User(login=register_dto.login, password=hashed_password)
+        raise HTTPException(status_code=400, detail="Passwords do not match")
+    hashed_password = bcrypt.hashpw(register_dto.password.encode('utf-8'), bcrypt.gensalt())
+    db_user = models.User(login=register_dto.login, password=hashed_password.decode('utf-8'))
     db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    return db_user
+    try:
+        db.commit()
+        db.refresh(db_user)
+        return {'id': db_user.id, 'login': db_user.login}
+    except IntegrityError:
+        raise HTTPException(status_code=400, detail="This user name is already taken")
 
 
 @app.get("/servers")
 def read_servers(settings: Settings = Depends(get_settings), server_list: dict = Depends(get_server_list)):
     current_time = datetime.datetime.utcnow()
-    filtered_list = filter(
+    filtered_list = list(filter(
         lambda item: item[1] + datetime.timedelta(seconds=settings.HEARTBEAT_RESPONSE_TIME) > current_time,
         server_list.items()
+    ))
+    mapped_list = list(
+        map(
+            lambda item: {'address': f"{item[0][0]}:{item[0][1]}", 'last_heartbeat': item[1]},
+            filtered_list
+        )
     )
-    filtered_list = dict(map(lambda item: (f"{item[0][0]}:{item[0][1]}", item[1]), filtered_list))
-    return filtered_list
+    return mapped_list
 
 
 def upsert_server(address: str, port: int, server_list: dict = get_server_list()):

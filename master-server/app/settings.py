@@ -1,5 +1,6 @@
-from pydantic import BaseSettings
+from pydantic import BaseSettings, AnyUrl
 from functools import lru_cache
+from typing import List
 
 
 class Settings(BaseSettings):
@@ -8,6 +9,7 @@ class Settings(BaseSettings):
     BROKER_URL: str
     HEARTBEAT_EXCHANGE_NAME: str = "heartbeat-exchange"
     HEARTBEAT_RESPONSE_TIME: int = 30
+    BACKEND_CORS_ORIGINS: List[AnyUrl] = []
 
     class Config:
         env_file = ".env"

@@ -1,20 +1,18 @@
-import { A, useNavigate } from "@solidjs/router";
 import { Component, createSignal, Match, Show, Switch } from "solid-js";
-
+import { useNavigate } from '@solidjs/router'
 import { AiFillEye } from "../components/icons/AiFillEye";
 import { AiFillEyeInvisible } from "../components/icons/AiFillEyeInvisible";
-import { postLogin } from "../services/fetch.service";
+import { setAccessToken } from "../services/auth.service";
+import { postLogin, postRegister } from "../services/fetch.service";
 
 import MeepoChatLogo from '../../public/meepo-chat-logo.png';
 import { Button } from "../components/Button";
-import { setAccessToken } from "../services/auth.service";
-import { setInLocalStorage } from "../services/local-storage.service";
 
-export const LoginPage: Component = () => {
+export const RegisterPage: Component = () => {
   const navigate = useNavigate();
-
   const [login, setLogin] = createSignal("", { name: "login" });
   const [password, setPassword] = createSignal("", { name: "password" });
+  const [passwordConfirm, setPasswordConfirm] = createSignal("", { name: "passwordConfirm" });
   const [isPasswordVisible, setIsPasswordVisible] = createSignal(false, {
     name: "IsPasswordVisible",
   });
@@ -25,9 +23,9 @@ export const LoginPage: Component = () => {
     event.preventDefault();
 
     try {
-      const response = await postLogin({ login: login(), password: password() });
-      setAccessToken(response.access_token);
-      setInLocalStorage('access_token', response.access_token);
+      await postRegister({login: login(), password: password(), pass_comp: passwordConfirm()});
+      const loginResponse = await postLogin({login: login(), password: password() });
+      setAccessToken(loginResponse.access_token);
       navigate('/select');
     } catch (error: unknown) {
       console.error(error);
@@ -51,7 +49,6 @@ export const LoginPage: Component = () => {
             required
             class="w-full rounded-lg border-4 border-stone-600 p-2 indent-2 text-xl font-bold focus:border-lime-600 accent-lime-600"
             placeholder="Login"
-            id="login"
             name="login"
             type="text"
             minLength="3"
@@ -61,9 +58,9 @@ export const LoginPage: Component = () => {
             <input
               required
               class="w-full rounded-lg border-4 border-stone-600 p-2 indent-2 text-xl font-bold focus:border-lime-600 accent-lime-600"
-              minLength="6"
               placeholder="Hasło"
               name="password"
+              minLength="6"
               onChange={(event) => setPassword(event.currentTarget.value)}
               type={isPasswordVisible() ? "text" : "password"}
             />
@@ -81,9 +78,35 @@ export const LoginPage: Component = () => {
               </Switch>
             </div>
           </div>
+          <div class="relative">
+            <input
+              required
+              class="w-full rounded-lg border-4 border-stone-600 p-2 indent-2 text-xl font-bold focus:border-lime-600 accent-lime-600"
+              placeholder="Potwórz hasło"
+              name="passwordConfirm"
+              minLength="6"
+              onChange={(event) => setPasswordConfirm(event.currentTarget.value)}
+              type={isPasswordVisible() ? "text" : "password"}
+            />
+            <div
+              class="absolute top-2.5 right-4 cursor-pointer"
+              onClick={() => setIsPasswordVisible((prev) => !prev)}
+            >
+              <Switch>
+                <Match when={isPasswordVisible() === true}>
+                  <AiFillEye width="2em" height="2em" />
+                </Match>
+                <Match when={isPasswordVisible() === false}>
+                  <AiFillEyeInvisible width="2em" height="2em" />
+                </Match>
+              </Switch>
+            </div>
+          </div>
         </div>
-        <Button text="Zaloguj się" type="submit" />
-        <A href="/register" class="text-lime-900 hover:text-lime-700">Nie masz konta? Zarejestruj się</A>
+        <Button
+          type="submit"
+          text="Zarejestruj się"
+        />
         <Show when={error().length > 0}>
           <div>
             <span class="text-red-600">{error()}</span>
@@ -91,5 +114,5 @@ export const LoginPage: Component = () => {
         </Show>
       </form>
     </div>
-  );
-};
+  )
+}
