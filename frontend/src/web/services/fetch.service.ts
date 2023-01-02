@@ -1,4 +1,8 @@
-import { constants } from "../lib/constants";
+import { createSignal } from "solid-js";
+
+export const [masterServerUrl, setMasterServerUrl] = createSignal('http://localhost:8080', {
+  name: 'masterServerUrl'
+})
 
 type LoginDto = {
   login: string;
@@ -10,7 +14,7 @@ type LoginResponse = {
 };
 
 export const postLogin = async (loginDto: LoginDto) => {
-  const response = await fetch(`${constants.masterServerUrl}/login`, {
+  const response = await fetch(`${masterServerUrl()}/login`, {
     method: 'POST',
     body: JSON.stringify(loginDto),
     mode: 'cors',
@@ -40,7 +44,7 @@ type RegisterResponse = {
 };
 
 export const postRegister = async (registerDto: RegisterDto) => {
-  const response = await fetch(`${constants.masterServerUrl}/register`, {
+  const response = await fetch(`${masterServerUrl()}/register`, {
     body: JSON.stringify(registerDto),
     method: 'POST',
     mode: 'cors',
@@ -63,7 +67,7 @@ export type GetServer = {
 };
 
 export const getServers = async () => {
-  const response = await fetch(`${constants.masterServerUrl}/servers`, {
+  const response = await fetch(`${masterServerUrl()}/servers`, {
     mode: 'cors',
       headers: {
         'Access-Control-Allow-Origin': '*'
@@ -125,6 +129,15 @@ export const getServerInfo = async (serverAddress: string) => {
   }
 
   return await response.json() as ServerInfo;
+}
+
+type Envars = {
+  masterServerAddress: string;
+};
+
+export const getEnvars = async () => {
+  const response = await fetch(`${location.origin}/api/master`);
+  return await response.json() as Envars;
 }
 
 export type FullServerInfo = ServerInfo & GetServer;

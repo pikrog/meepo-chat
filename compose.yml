@@ -28,7 +28,7 @@ services:
             published: 6379
             protocol: tcp
         healthcheck:
-            test: ["CMD-SHELL", '[ "$(redis-cli ping)" = "PONG" ]']
+            test: ["CMD-SHELL", '[ "$$(redis-cli ping)" = "PONG" ]']
             interval: 10s
             timeout: 5s
             retries: 5
@@ -104,14 +104,16 @@ services:
             main-db:
                 condition: service_healthy
     front-end:
-      image: pikrog/meepo-front-end:latest
+      image: frontend
       build: ./frontend/
       restart: unless-stopped
+      env_file:
+        - .env
       networks:
         - main-network
       ports:
         - published: 9999
-          target: 80
+          target: 3000
           protocol: tcp
             
 networks:

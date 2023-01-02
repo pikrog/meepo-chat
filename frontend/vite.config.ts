@@ -9,4 +9,9 @@ export default defineConfig({
   server: {
     port: 3000,
   },
+  root: __dirname + '/src/web',
+  publicDir: __dirname + '/public',
+  build: {
+    outDir: __dirname + '/.vite',
+  }
 });

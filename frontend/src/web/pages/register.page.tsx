@@ -5,7 +5,7 @@ import { AiFillEyeInvisible } from "../components/icons/AiFillEyeInvisible";
 import { setAccessToken } from "../services/auth.service";
 import { postLogin, postRegister } from "../services/fetch.service";
 
-import MeepoChatLogo from '../../public/meepo-chat-logo.png';
+import MeepoChatLogo from '../../../public/meepo-chat-logo.png';
 import { Button } from "../components/Button";
 
 export const RegisterPage: Component = () => {
@@ -29,7 +29,7 @@ export const RegisterPage: Component = () => {
       navigate('/select');
     } catch (error: unknown) {
       console.error(error);
-      if (typeof error === 'object' && 'detail' in error && typeof error.detail === 'string') {
+      if (typeof error === 'object' && error && 'detail' in error && typeof error.detail === 'string') {
         setError(error.detail);
       } else {
         setError("Wystąpił nieoczekiwany błąd");
