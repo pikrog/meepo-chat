@@ -1,6 +1,6 @@
 services:
     chat-server:
-        image: meepo-chat-server:latest
+        image: pikrog/meepo-chat-server:latest
         build: ./chat-server/
         restart: unless-stopped
         networks:
@@ -16,14 +16,22 @@ services:
             ADVERTISED_ADDRESS: ${ADVERTISED_ADDRESS}
             ADVERTISED_PORT: ${ADVERTISED_PORT}
             SERVER_NAME: ${SERVER_NAME}
+        depends_on:
+            db:
+                condition: service_healthy
     db:
         image: redis:7.0.5-bullseye
         networks:
           - internal-network
-        ports:
-          - target: 6379
-            published: 6379
-            protocol: tcp
+        #ports:
+        #  - target: 6379
+        #    published: 6379
+        #    protocol: tcp
+        healthcheck:
+            test: ["CMD-SHELL", '[ "$(redis-cli ping)" = "PONG" ]']
+            interval: 10s
+            timeout: 5s
+            retries: 5
             
 networks:
     internal-network:

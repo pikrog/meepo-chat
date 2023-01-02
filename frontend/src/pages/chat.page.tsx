@@ -1,91 +1,160 @@
-import { Component, createSignal, For, onMount, Show } from "solid-js";
+import { Component, createSignal, For, onMount, Show, onCleanup } from "solid-js";
 
-import { AiTwotoneSetting } from "../components/icons/AiTwotoneSetting";
 import { addEmojisToString } from "../lib/emojiMap";
-import { Message, OnInput, OnKeyPress, Ref } from "../types";
-import { getGlobalUser, setGlobalUser } from "../services/auth.service";
-
-const users = [
-  { id: 1, name: "user1" },
-  { id: 2, name: "user2" },
-  { id: 3, name: "user3" },
-  { id: 4, name: "user4" },
-];
+import { ChatMessage, OnInput, OnKeyPress, Ref, WSMessage } from "../types";
+import { disconnectFromWebSocket, getUserList, getWebSocket, sendChatMessage, setNewWebSocket } from "../services/websocket.service";
+import { getServerMessage } from "../services/fetch.service";
+import { getServerAddress } from "../services/chat.service";
+import { useNavigate } from "@solidjs/router";
+import { selectPageError, setSelectPageError } from "./select.page";
 
 export const ChatPage: Component = () => {
-  const [messages, setMessages] = createSignal<Message[]>([], {
+  const [messages, setMessages] = createSignal<ChatMessage[]>([], {
     name: "messages",
   });
-  const [message, setMessage] = createSignal("", { name: "message" });
-  const [isModalOpen, setIsModalOpen] = createSignal(false, {
-    name: "isModalOpen",
-  });
+  const [text, setText] = createSignal("", { name: "text" });
+  const [userList, setUserList] = createSignal<string[]>([], { name: "userList" })
+
+  const navigate = useNavigate();
+  
+  const handleWebSocketMessage = (message: MessageEvent<string>) => {
+    const data = JSON.parse(message.data) as WSMessage;
+
+    if (data.opcode === 'chat') {
+      if (data.data.type === 'leave') {
+        setUserList((prev) => prev.filter((name) => name !== data.data.sender));
+      } else if (data.data.type === 'join') {
+        setUserList((prev) => prev.concat([data.data.sender]));
+      }
+
+      setMessages((prev) => prev.concat([data]));
+      ref.scroll({ top: ref.scrollHeight });
+    } else if (data.opcode === 'user_list') {
+      setUserList(data.data.map((item) => item.name));
+    } else if (data.opcode === 'error') {
+      setSelectPageError(data.data);
+    }
+  }
+  
+  let websocket = getWebSocket();
+
+  if (websocket) {
+    websocket.onmessage = handleWebSocketMessage;
+    websocket.onclose = () => {
+      if (selectPageError().length === 0) {
+        setSelectPageError("Połączenie zostało niespodziewanie przerwane")
+      }
+      navigate('/select');
+    }
+  }
 
   // eslint-disable-next-line prefer-const
   let ref: Ref<HTMLDivElement> = null;
-
-  onMount(() => {
-    const auth = {
-      id: 12,
-      name: "Gabryjiel",
-    };
-
-    setGlobalUser(auth);
-  });
 
   const handleOnKeyPress: OnKeyPress = (event) => {
     if (event.key === "Enter" && event.shiftKey === false) {
       event.preventDefault();
 
-      const newMessage: Message = {
-        id: 1,
-        user: getGlobalUser(),
-        content: message(),
-        timestamp: new Date(),
-      };
-
-      setMessages((prev) => [...prev, newMessage]);
-      setMessage("");
-      ref.scroll({ top: ref.scrollHeight });
+      sendChatMessage(text());
+      setText("");
     }
   };
 
   const handleOnInput: OnInput = (event) => {
     if (event.inputType === "insertText") {
-      setMessage(addEmojisToString(event.currentTarget.value));
+      setText(addEmojisToString(event.currentTarget.value));
     }
   };
 
-  const handleEventToggle = (event: MouseEvent) => {
-    event.preventDefault();
-    setIsModalOpen((prev) => !prev);
-  };
+  onMount(async () => {
+    if (!websocket) {
+      websocket = await setNewWebSocket(getServerAddress());
+      websocket.onmessage = handleWebSocketMessage;
+    }
+    getUserList(websocket);
+
+    const response = await getServerMessage(getServerAddress());
+    const worthyMessages: ChatMessage[] = response
+      .filter((message) => message.type === 'chat' && message.text !== null)
+      .map((message) => ({
+        opcode: 'chat',
+        data: {
+          type: 'chat',
+          sender: message.sender,
+          text: message.text,
+          timestamp: message.timestamp
+        },
+      }));
+    worthyMessages.reverse();
+    setMessages((prev) => worthyMessages.concat(prev));
+    ref.scroll({ top: ref.scrollHeight });
+  });
+
+  onCleanup(() => {
+    disconnectFromWebSocket();
+  })
 
   return (
     <div class="flex h-screen w-screen">
       <main class="h-screen flex-1">
         <div
           ref={ref}
-          class="flex h-11/12 w-full flex-col gap-2 overflow-y-auto overflow-x-hidden border-b-2 border-stone-700"
+          class="flex h-11/12 w-full flex-col gap-1 overflow-y-auto overflow-x-hidden border-b-2 border-stone-700"
         >
-          <For each={messages()} fallback={<div>No messages yet</div>}>
-            {(item, index) => (
-              <div id={`message-${index()}`} class="flex w-full flex-col px-2">
-                <div class="flex items-center gap-2">
-                  <span class="font-bold">{item.user.name}</span>
-                  <span class="flex-1 break-all">{item.content}</span>
-                </div>
-                <span class="w-full text-right italic">
-                  {item.timestamp.toLocaleString()}
-                </span>
-              </div>
-            )}
+          <For each={messages()} fallback={<div>Brak wiadomości</div>}>
+            {(item, index) => {
+              const timestamp = new Date(item.data.timestamp).toLocaleString();
+
+              if (item.data.type === 'chat') {
+                return (
+                  <div id={`message-${index()}`} class="flex w-full px-2">
+                    <div class="flex flex-1 items-center gap-2">
+                      <span class="font-bold">{item.data.sender}</span>
+                      <span class="flex-1 break-all">{addEmojisToString(item.data.text)}</span>
+                    </div>
+                    <div class="w-36">
+                      <span class="w-full text-right italic">
+                        {timestamp}
+                      </span>
+                    </div>
+                  </div>
+                );
+              } else if (item.data.type === 'join') {
+                return (
+                  <div id={`message-${index()}`} class="flex w-full px-2">
+                    <div class="flex flex-1 items-center gap-2">
+                      <span class="italic">{`${item.data.sender} dołączył do serwera`}</span>
+                    </div>
+                    <div class="w-36">
+                      <span class="w-full text-right italic">
+                        {timestamp}
+                      </span>
+                    </div>
+                  </div>
+                );
+              } else if (item.data.type === 'leave') {
+                return (
+                  <div id={`message-${index()}`} class="flex w-full px-2">
+                    <div class="flex flex-1 items-center gap-2">
+                      <span class="italic">{`${item.data.sender} opuścił serwer`}</span>
+                    </div>
+                    <div class="w-36">
+                      <span class="w-full text-right italic">
+                        {timestamp}
+                      </span>
+                    </div>
+                  </div>
+                );
+              } else {
+                return <hr />;
+              }
+            }}
           </For>
         </div>
         <div class="h-1/12 w-full p-2">
           <textarea
             class="h-full w-full resize-none bg-stone-200"
-            value={message()}
+            value={text()}
             onInput={handleOnInput}
             onKeyPress={handleOnKeyPress}
           />
@@ -94,32 +163,19 @@ export const ChatPage: Component = () => {
       <aside class="flex h-full w-48 flex-col border-l-2 border-stone-700 indent-2">
         <div class="h-11/12">
           <div class="font-bold">Lista użytkowników</div>
-          <For each={users} fallback={<div>No other users</div>}>
-            {(item) => <div id={`aside-user-${item.id}`}>{item.name}</div>}
+          <For each={userList()} fallback={<div>Brak użytkowników</div>}>
+            {(item) => <div id={`aside-user-${item}`}>{item}</div>}
           </For>
         </div>
         <div class="flex h-1/12 items-center justify-center">
-          <button onClick={handleEventToggle}>
-            <AiTwotoneSetting width="4em" height="4em" />
+          <button
+            class="border-4 w-32 p-2 border-lime-900 bg-lime-500 hover:brightness-105 rounded-lg"
+            onClick={() => navigate('/select')}
+          >
+            Rozłącz
           </button>
         </div>
       </aside>
-
-      <Show when={isModalOpen() === true}>
-        <div
-          onClick={handleEventToggle}
-          class="absolute flex h-screen w-screen items-center justify-center"
-          style={{ "background-color": "rgba(0,0,0,0.67)" }}
-        >
-          <div
-            class="h-2/3 w-2/3 rounded-lg border-4 border-stone-800 bg-stone-500 opacity-100"
-            onClick={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-            }}
-          />
-        </div>
-      </Show>
     </div>
   );
 };

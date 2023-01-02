@@ -1,10 +1,18 @@
 version: "3.8"
 services:
+  front-end:
+    environment:
+      VITE_MASTER_SERVER_URL: http://localhost:8080
+    image: pikrog/meepo-front-end:latest
+    ports:
+    - target: 80
+      published: 80
+      protocol: tcp
   logger:
     environment:
       BROKER_URL: amqp://user:password@mq
       DATABASE_URL: postgresql://user:password@main-db/meepo
-    image: meepo-logger:latest
+    image: pikrog/meepo-logger:latest
     networks:
       meepo-chat-network: null
   main-db:
@@ -19,16 +27,14 @@ services:
     image: postgres:15.0
     networks:
       meepo-chat-network: null
-    ports:
-    - target: 5432
-      published: 5432
-      protocol: tcp
     volumes:
     - type: volume
       source: postgres-data
       target: /var/lib/postgresql/data
   master-server:
     environment:
+      BACKEND_CORS_ORIGINS: '["http://localhost:8000", "https://localhost:8000", "http://localhost",
+        "https://localhost", "http://localhost:9999"]'
       BROKER_URL: amqp://user:password@mq
       DATABASE_URL: postgresql://user:password@main-db/meepo
       JWT_SECRET: super_secret
@@ -46,10 +52,6 @@ services:
     image: rabbitmq:3.11.5
     networks:
       meepo-chat-network: null
-    ports:
-    - target: 5672
-      published: 5672
-      protocol: tcp
 networks:
   meepo-chat-network:
     name: meepo-chat-network

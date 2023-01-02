@@ -1,51 +1,69 @@
-import { A } from "@solidjs/router";
-import { Component, createSignal, Match, Switch } from "solid-js";
+import { A, useNavigate } from "@solidjs/router";
+import { Component, createSignal, Match, Show, Switch } from "solid-js";
 
 import { AiFillEye } from "../components/icons/AiFillEye";
 import { AiFillEyeInvisible } from "../components/icons/AiFillEyeInvisible";
-import { kyLogin } from "../services/ky.service";
+import { postLogin } from "../services/fetch.service";
 
-export type OnSubmitEvent = Event & {
-  submitter: HTMLElement;
-} & {
-  currentTarget: HTMLFormElement;
-  target: Element;
-};
+import MeepoChatLogo from '../../public/meepo-chat-logo.png';
+import { Button } from "../components/Button";
+import { setAccessToken } from "../services/auth.service";
+import { setInLocalStorage } from "../services/local-storage.service";
 
 export const LoginPage: Component = () => {
+  const navigate = useNavigate();
+
   const [login, setLogin] = createSignal("", { name: "login" });
   const [password, setPassword] = createSignal("", { name: "password" });
   const [isPasswordVisible, setIsPasswordVisible] = createSignal(false, {
     name: "IsPasswordVisible",
   });
 
-  const handleSubmit = (event: OnSubmitEvent) => {
+  const [error, setError] = createSignal("", { name: "error" });
+
+  const handleSubmit = async (event: Event) => {
     event.preventDefault();
-    kyLogin(login(), password()).catch(console.error);
+
+    try {
+      const response = await postLogin({ login: login(), password: password() });
+      setAccessToken(response.access_token);
+      setInLocalStorage('access_token', response.access_token);
+      navigate('/select');
+    } catch (error: unknown) {
+      console.error(error);
+      if (typeof error === 'object' && 'detail' in error && typeof error.detail === 'string') {
+        setError(error.detail);
+      } else {
+        setError("Wystąpił nieoczekiwany błąd");
+      }
+    }
   };
 
   return (
     <div class="grid h-screen w-screen place-items-center">
       <form
-        class="flex h-3/5 w-1/2 flex-col items-center justify-evenly gap-2 rounded-lg border-4 border-stone-600 bg-stone-200 p-8"
         onSubmit={handleSubmit}
+        class="flex h-4/5 w-1/2 flex-col items-center justify-evenly gap-2 rounded-lg border-4 border-stone-600 bg-stone-200 p-8"
       >
-        <div>Logo</div>
+        <img src={MeepoChatLogo} alt="Meepo Chat Logo" />
         <div class="flex w-full flex-col gap-2">
           <input
+            required
             class="w-full rounded-lg border-4 border-stone-600 p-2 indent-2 text-xl font-bold focus:border-lime-600 accent-lime-600"
             placeholder="Login"
+            id="login"
             name="login"
             type="text"
-            value={login()}
+            minLength="3"
             onChange={(event) => setLogin(event.currentTarget.value)}
           />
           <div class="relative">
             <input
+              required
               class="w-full rounded-lg border-4 border-stone-600 p-2 indent-2 text-xl font-bold focus:border-lime-600 accent-lime-600"
+              minLength="6"
               placeholder="Hasło"
               name="password"
-              value={password()}
               onChange={(event) => setPassword(event.currentTarget.value)}
               type={isPasswordVisible() ? "text" : "password"}
             />
@@ -64,13 +82,13 @@ export const LoginPage: Component = () => {
             </div>
           </div>
         </div>
-        <button
-          class="w-64 rounded-lg border-4 border-lime-900 bg-lime-500 py-2 text-xl font-bold text-lime-900 hover:text-lime-700 hover:border-lime-700"
-          type="submit"
-        >
-          Zaloguj się
-        </button>
+        <Button text="Zaloguj się" type="submit" />
         <A href="/register" class="text-lime-900 hover:text-lime-700">Nie masz konta? Zarejestruj się</A>
+        <Show when={error().length > 0}>
+          <div>
+            <span class="text-red-600">{error()}</span>
+          </div>
+        </Show>
       </form>
     </div>
   );
