@@ -23,6 +23,7 @@ export function disconnectFromWebSocket() {
   const ws = getWebSocket();
   
   if (ws) {
+    ws.onclose = null;
     ws.close();
     setWebSocket(null);
   }

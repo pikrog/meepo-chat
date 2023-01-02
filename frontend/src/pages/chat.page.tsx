@@ -6,7 +6,7 @@ import { disconnectFromWebSocket, getUserList, getWebSocket, sendChatMessage, se
 import { getServerMessage } from "../services/fetch.service";
 import { getServerAddress } from "../services/chat.service";
 import { useNavigate } from "@solidjs/router";
-import { setSelectPageError } from "./select.page";
+import { selectPageError, setSelectPageError } from "./select.page";
 
 export const ChatPage: Component = () => {
   const [messages, setMessages] = createSignal<ChatMessage[]>([], {
@@ -40,8 +40,10 @@ export const ChatPage: Component = () => {
 
   if (websocket) {
     websocket.onmessage = handleWebSocketMessage;
-    websocket.onclose = (event) => {
-      console.dir(event);
+    websocket.onclose = () => {
+      if (selectPageError().length === 0) {
+        setSelectPageError("Połączenie zostało niespodziewanie przerwane")
+      }
       navigate('/select');
     }
   }
