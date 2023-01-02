@@ -9,7 +9,7 @@ services:
           - main-network
         ports:
           - target: 80
-            published: ${ADVERTISED_PORT}
+            published: ${ADVERTISED_PORT:-"8000"}
             protocol: tcp
         env_file:
           - .env
@@ -17,7 +17,7 @@ services:
             mq:
                 condition: service_healthy
             chat-server-db:
-                condition: service_started
+                condition: service_healthy
     chat-server-db:
         image: redis:7.0.5-bullseye
         restart: unless-stopped
@@ -27,6 +27,11 @@ services:
           - target: 6379
             published: 6379
             protocol: tcp
+        healthcheck:
+            test: ["CMD-SHELL", '[ "$(redis-cli ping)" = "PONG" ]']
+            interval: 10s
+            timeout: 5s
+            retries: 5
     mq:
         image: rabbitmq:3.11.5
         restart: unless-stopped
@@ -60,7 +65,7 @@ services:
             mq:
                 condition: service_healthy
             main-db:
-                condition: service_started
+                condition: service_healthy
     main-db:
         image: postgres:15.0
         restart: unless-stopped
@@ -76,6 +81,11 @@ services:
             protocol: tcp
         env_file:
           - .env
+        healthcheck:
+            test: ["CMD", "pg_isready", "-U", '${POSTGRES_USER:-"postgres"}', "-d", '${POSTGRES_DB:-"postgres"}']
+            interval: 10s
+            timeout: 5s
+            retries: 5
     master-server:
         image: pikrog/meepo-master-server:latest
         build: ./master-server/
@@ -92,7 +102,7 @@ services:
             mq:
                 condition: service_healthy
             main-db:
-                condition: service_started
+                condition: service_healthy
     front-end:
       image: pikrog/meepo-front-end:latest
       build: ./frontend/
