@@ -19,7 +19,7 @@ export const RegisterPage: Component = () => {
 
   const [error, setError] = createSignal("", { name: "error" });
 
-  const handleSubmit = async (event: MouseEvent) => {
+  const handleSubmit = async (event: Event) => {
     event.preventDefault();
 
     try {
@@ -38,24 +38,27 @@ export const RegisterPage: Component = () => {
   return (
     <div class="grid h-screen w-screen place-items-center">
       <form
+        onSubmit={handleSubmit}
         class="flex h-4/5 w-1/2 flex-col items-center justify-evenly gap-2 rounded-lg border-4 border-stone-600 bg-stone-200 p-8"
       >
         <img src={MeepoChatLogo} alt="Meepo Chat Logo" />
         <div class="flex w-full flex-col gap-2">
           <input
+            required
             class="w-full rounded-lg border-4 border-stone-600 p-2 indent-2 text-xl font-bold focus:border-lime-600 accent-lime-600"
             placeholder="Login"
             name="login"
             type="text"
-            value={login()}
+            minLength="3"
             onChange={(event) => setLogin(event.currentTarget.value)}
           />
           <div class="relative">
             <input
+              required
               class="w-full rounded-lg border-4 border-stone-600 p-2 indent-2 text-xl font-bold focus:border-lime-600 accent-lime-600"
               placeholder="Hasło"
               name="password"
-              value={password()}
+              minLength="6"
               onChange={(event) => setPassword(event.currentTarget.value)}
               type={isPasswordVisible() ? "text" : "password"}
             />
@@ -75,10 +78,11 @@ export const RegisterPage: Component = () => {
           </div>
           <div class="relative">
             <input
+              required
               class="w-full rounded-lg border-4 border-stone-600 p-2 indent-2 text-xl font-bold focus:border-lime-600 accent-lime-600"
               placeholder="Potwórz hasło"
               name="passwordConfirm"
-              value={passwordConfirm()}
+              minLength="6"
               onChange={(event) => setPasswordConfirm(event.currentTarget.value)}
               type={isPasswordVisible() ? "text" : "password"}
             />
@@ -98,7 +102,7 @@ export const RegisterPage: Component = () => {
           </div>
         </div>
         <Button
-          onClick={handleSubmit}
+          type="submit"
           text="Zarejestruj się"
         />
         <Show when={error().length > 0}>

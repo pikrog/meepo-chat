@@ -21,7 +21,7 @@ export const LoginPage: Component = () => {
 
   const [error, setError] = createSignal("", { name: "error" });
 
-  const handleSubmit = async (event: MouseEvent) => {
+  const handleSubmit = async (event: Event) => {
     event.preventDefault();
 
     try {
@@ -40,24 +40,28 @@ export const LoginPage: Component = () => {
   return (
     <div class="grid h-screen w-screen place-items-center">
       <form
+        onSubmit={handleSubmit}
         class="flex h-4/5 w-1/2 flex-col items-center justify-evenly gap-2 rounded-lg border-4 border-stone-600 bg-stone-200 p-8"
       >
         <img src={MeepoChatLogo} alt="Meepo Chat Logo" />
         <div class="flex w-full flex-col gap-2">
           <input
+            required
             class="w-full rounded-lg border-4 border-stone-600 p-2 indent-2 text-xl font-bold focus:border-lime-600 accent-lime-600"
             placeholder="Login"
+            id="login"
             name="login"
             type="text"
-            value={login()}
+            minLength="3"
             onChange={(event) => setLogin(event.currentTarget.value)}
           />
           <div class="relative">
             <input
+              required
               class="w-full rounded-lg border-4 border-stone-600 p-2 indent-2 text-xl font-bold focus:border-lime-600 accent-lime-600"
+              minLength="6"
               placeholder="Hasło"
               name="password"
-              value={password()}
               onChange={(event) => setPassword(event.currentTarget.value)}
               type={isPasswordVisible() ? "text" : "password"}
             />
@@ -76,7 +80,7 @@ export const LoginPage: Component = () => {
             </div>
           </div>
         </div>
-        <Button text="Zaloguj się" onClick={handleSubmit} />
+        <Button text="Zaloguj się" type="submit" />
         <A href="/register" class="text-lime-900 hover:text-lime-700">Nie masz konta? Zarejestruj się</A>
         <Show when={error().length > 0}>
           <div>
