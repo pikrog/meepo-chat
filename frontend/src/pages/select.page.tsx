@@ -4,7 +4,7 @@ import { Button } from "../components/Button";
 
 import { setAccessToken } from "../services/auth.service";
 import { setServerAddress } from "../services/chat.service";
-import { FullServerInfo, getServerInfo, getServers, type GetServer } from "../services/fetch.service";
+import { FullServerInfo, getServerInfo, getServers } from "../services/fetch.service";
 
 import MeepoChatLogo from '../../public/meepo-chat-logo.png';
 import { setNewWebSocket } from "../services/websocket.service";
@@ -62,6 +62,7 @@ export const SelectPage: Component = () => {
 
 
   onMount(() => {
+    console.log(selectPageError())
     fetchServers();
   });
 
