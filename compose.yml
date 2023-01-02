@@ -104,7 +104,7 @@ services:
             main-db:
                 condition: service_healthy
     front-end:
-      image: frontend
+      image: pikrog/meepo-front-end:latest
       build: ./frontend/
       restart: unless-stopped
       env_file:
