@@ -10,7 +10,7 @@ services:
     environment:
       BROKER_URL: amqp://user:password@mq
       DATABASE_URL: postgresql://user:password@main-db/meepo
-    image: meepo-logger:latest
+    image: pikrog/meepo-logger:latest
     networks:
       meepo-chat-network: null
   main-db:

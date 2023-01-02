@@ -11,7 +11,7 @@ services:
             RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
             RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
     logger:
-        image: meepo-logger:latest
+        image: pikrog/meepo-logger:latest
         networks:
           - meepo-chat-network
         environment:
