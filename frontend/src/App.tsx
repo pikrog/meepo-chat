@@ -1,3 +1,4 @@
+import { Router } from "@solidjs/router";
 import { Component, onMount } from "solid-js";
 
 import { RouterProvider } from "./router/routes";
@@ -7,13 +8,15 @@ import { getFromLocalStorage } from "./services/local-storage.service";
 
 export const App: Component = () => {
   onMount(() => {
-    setAccessToken(getFromLocalStorage('access_token'));
-    setServerAddress(getFromLocalStorage('server_address'));
+    setAccessToken(getFromLocalStorage('access_token') ?? '');
+    setServerAddress(getFromLocalStorage('server_address') ?? '');
   });
 
   return (
     <div class="bg-stone-300">
-      <RouterProvider />
+      <Router>
+        <RouterProvider />
+      </Router>
     </div>
   );
 };

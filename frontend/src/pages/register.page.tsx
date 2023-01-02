@@ -21,7 +21,7 @@ export const RegisterPage: Component = () => {
     event.preventDefault();
 
     try {
-      await postRegister({login: login(), password: password(), passwordConfirm: passwordConfirm()});
+      await postRegister({login: login(), password: password(), pass_comp: passwordConfirm()});
       const loginResponse = await postLogin({login: login(), password: password() });
       setAccessToken(loginResponse.access_token);
       navigate('/select');

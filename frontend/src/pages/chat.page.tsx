@@ -173,7 +173,7 @@ export const ChatPage: Component = () => {
       <aside class="flex h-full w-48 flex-col border-l-2 border-stone-700 indent-2">
         <div class="h-11/12">
           <div class="font-bold">Lista użytkowników</div>
-          <For each={userList()} fallback={<div>No other users</div>}>
+          <For each={userList()} fallback={<div>Brak użytkowników</div>}>
             {(item) => <div id={`aside-user-${item}`}>{item}</div>}
           </For>
         </div>

@@ -4,7 +4,7 @@ import { Button } from "../components/Button";
 
 import { setAccessToken } from "../services/auth.service";
 import { setServerAddress } from "../services/chat.service";
-import { type GetServer } from "../services/ky.service";
+import { getServers, type GetServer } from "../services/ky.service";
 
 import MeepoChatLogo from '../../public/meepo-chat-logo.png';
 import { setNewWebSocket } from "../services/websocket.service";
@@ -20,14 +20,9 @@ export type OnSubmitEvent = Event & {
 export const SelectPage: Component = () => {
   const navigate = useNavigate();
 
-  const [servers, setServers] = createSignal<GetServer[]>([
-    { serverId: 1, address: 'localhost:8000', name: 'Ohio' },
-    { serverId: 2, address: 'localhost:8001', name: 'Frankfurt' },
-    { serverId: 3, address: 'localhost:8002', name: 'Wellington' }
-  ], { name: "servers" });
+  const [servers, setServers] = createSignal<GetServer[]>([], { name: "servers" });
 
   const handleServerChoice = async (serverAddress: string) => {
-    console.log(serverAddress);
     try {
       setServerAddress(serverAddress);
       await setNewWebSocket(serverAddress)
@@ -40,12 +35,13 @@ export const SelectPage: Component = () => {
 
   const handleLogout = () => {
     setAccessToken('');
+    setInLocalStorage('access_token', '');
     navigate('/login');
   };
 
   onMount(async () => {
-    // const response = await getServers()
-    // setServers(response);
+    const response = await getServers()
+    setServers(response);
   });
 
   return (
