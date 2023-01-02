@@ -19,7 +19,7 @@ export const ChatPage: Component = () => {
   
   const handleWebSocketMessage = (message: MessageEvent<string>) => {
     const data = JSON.parse(message.data) as WSMessage;
-    console.log(data);
+
     if (data.opcode === 'chat') {
       if (data.data.type === 'leave') {
         setUserList((prev) => prev.filter((name) => name !== data.data.sender));

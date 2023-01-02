@@ -33,6 +33,8 @@ export const LoginPage: Component = () => {
       console.error(error);
       if (typeof error === 'object' && 'detail' in error && typeof error.detail === 'string') {
         setError(error.detail);
+      } else {
+        setError("Wystąpił nieoczekiwany błąd");
       }
     }
   };

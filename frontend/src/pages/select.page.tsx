@@ -62,7 +62,6 @@ export const SelectPage: Component = () => {
 
 
   onMount(() => {
-    console.log(selectPageError())
     fetchServers();
   });
 
