@@ -1,10 +1,10 @@
 import { useNavigate } from "@solidjs/router";
-import { Component, createSignal, For, onMount } from "solid-js";
+import { Component, createSignal, For, onCleanup, onMount, Show } from "solid-js";
 import { Button } from "../components/Button";
 
 import { setAccessToken } from "../services/auth.service";
 import { setServerAddress } from "../services/chat.service";
-import { getServers, type GetServer } from "../services/ky.service";
+import { FullServerInfo, getServerInfo, getServers, type GetServer } from "../services/fetch.service";
 
 import MeepoChatLogo from '../../public/meepo-chat-logo.png';
 import { setNewWebSocket } from "../services/websocket.service";
@@ -17,16 +17,19 @@ export type OnSubmitEvent = Event & {
   target: Element;
 };
 
+export const [selectPageError, setSelectPageError] = createSignal('', { name: 'selectPageError '});
+
 export const SelectPage: Component = () => {
   const navigate = useNavigate();
 
-  const [servers, setServers] = createSignal<GetServer[]>([], { name: "servers" });
+  const [servers, setServers] = createSignal<FullServerInfo[]>([], { name: "servers" });
 
   const handleServerChoice = async (serverAddress: string) => {
     try {
       setServerAddress(serverAddress);
       await setNewWebSocket(serverAddress)
       setInLocalStorage('server_address', serverAddress);
+      setSelectPageError('');
       navigate('/chat');
     } catch (error) {
       console.error(error);
@@ -39,9 +42,31 @@ export const SelectPage: Component = () => {
     navigate('/login');
   };
 
-  onMount(async () => {
+  const fetchServers = async () => {
     const response = await getServers()
-    setServers(response);
+    const serverInfos = await Promise.all(
+      response.map(async (server) => await getServerInfo(server.address))
+    )
+
+    const servers = response.map((server, idx) => ({
+      ...server,
+      ...serverInfos[idx],
+    }))
+
+    setServers(servers);
+  };
+
+  const interval = setInterval(() => {
+    fetchServers();
+  }, 5000);
+
+
+  onMount(() => {
+    fetchServers();
+  });
+
+  onCleanup(() => {
+   clearInterval(interval); 
   });
 
   return (
@@ -58,7 +83,10 @@ export const SelectPage: Component = () => {
             <For each={servers()}>
               {(item) => (
                 <div onClick={() => handleServerChoice(item.address)} class="flex w-full justify-between border-4 border-stone-700 p-2 rounded-lg bg-stone-300 hover:brightness-105 cursor-pointer">
-                  <div class="font-bold">{item.name}</div>
+                  <div class="flex gap-1">
+                    <span class="font-bold">{item.server_name}</span>
+                    <span>{`(${item.num_clients} / ${item.max_clients})`}</span>
+                  </div>
                   <div class="italic">{item.address}</div>
                 </div>
               )}
@@ -67,6 +95,11 @@ export const SelectPage: Component = () => {
           <div class="w-full flex justify-center">
             <Button onClick={handleLogout} text="Wyloguj się" />
           </div>
+          <Show when={selectPageError().length > 0}>
+            <div class="w-full flex justify-center">
+              <span class="text-red-500 text-xl">{selectPageError()}</span>
+            </div>
+          </Show>
         </div>
       </div>
     </div>

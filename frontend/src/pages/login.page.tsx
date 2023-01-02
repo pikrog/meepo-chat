@@ -1,9 +1,9 @@
 import { A, useNavigate } from "@solidjs/router";
-import { Component, createSignal, Match, Switch } from "solid-js";
+import { Component, createSignal, Match, Show, Switch } from "solid-js";
 
 import { AiFillEye } from "../components/icons/AiFillEye";
 import { AiFillEyeInvisible } from "../components/icons/AiFillEyeInvisible";
-import { postLogin } from "../services/ky.service";
+import { postLogin } from "../services/fetch.service";
 
 import MeepoChatLogo from '../../public/meepo-chat-logo.png';
 import { Button } from "../components/Button";
@@ -19,12 +19,22 @@ export const LoginPage: Component = () => {
     name: "IsPasswordVisible",
   });
 
+  const [error, setError] = createSignal("", { name: "error" });
+
   const handleSubmit = async (event: MouseEvent) => {
     event.preventDefault();
-    const response = await postLogin({ login: login(), password: password() });
-    setAccessToken(response.access_token);
-    setInLocalStorage('access_token', response.access_token);
-    navigate('/select');
+
+    try {
+      const response = await postLogin({ login: login(), password: password() });
+      setAccessToken(response.access_token);
+      setInLocalStorage('access_token', response.access_token);
+      navigate('/select');
+    } catch (error: unknown) {
+      console.error(error);
+      if (typeof error === 'object' && 'detail' in error && typeof error.detail === 'string') {
+        setError(error.detail);
+      }
+    }
   };
 
   return (
@@ -68,6 +78,11 @@ export const LoginPage: Component = () => {
         </div>
         <Button text="Zaloguj się" onClick={handleSubmit} />
         <A href="/register" class="text-lime-900 hover:text-lime-700">Nie masz konta? Zarejestruj się</A>
+        <Show when={error().length > 0}>
+          <div>
+            <span class="text-red-600">{error()}</span>
+          </div>
+        </Show>
       </form>
     </div>
   );
