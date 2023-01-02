@@ -1,55 +1,49 @@
 import { Component, createSignal, For, onMount, Show, onCleanup } from "solid-js";
 
-import { AiTwotoneSetting } from "../components/icons/AiTwotoneSetting";
 import { addEmojisToString } from "../lib/emojiMap";
-import { Message, OnInput, OnKeyPress, Ref, TextChatMessage, WSMessage } from "../types";
-import { getAccessToken, setAccessToken } from "../services/auth.service";
-import { SettingsModal } from "../components/SettingsModal";
+import { ChatMessage, OnInput, OnKeyPress, Ref, WSMessage } from "../types";
 import { disconnectFromWebSocket, getUserList, getWebSocket, sendChatMessage, setNewWebSocket } from "../services/websocket.service";
-import { getServerMessage } from "../services/ky.service";
+import { getServerMessage } from "../services/fetch.service";
 import { getServerAddress } from "../services/chat.service";
-import { getFromLocalStorage } from "../services/local-storage.service";
-
-const users = [
-  { id: 1, name: "user1" },
-  { id: 2, name: "user2" },
-  { id: 3, name: "user3" },
-  { id: 4, name: "user4" },
-];
+import { useNavigate } from "@solidjs/router";
+import { setSelectPageError } from "./select.page";
 
 export const ChatPage: Component = () => {
-  const [messages, setMessages] = createSignal<WSMessage[]>([], {
+  const [messages, setMessages] = createSignal<ChatMessage[]>([], {
     name: "messages",
   });
   const [text, setText] = createSignal("", { name: "text" });
-  const [isModalOpen, setIsModalOpen] = createSignal(false, {
-    name: "isModalOpen",
-  });
   const [userList, setUserList] = createSignal<string[]>([], { name: "userList" })
 
-  let websocket = getWebSocket();
-
+  const navigate = useNavigate();
+  
   const handleWebSocketMessage = (message: MessageEvent<string>) => {
     const data = JSON.parse(message.data) as WSMessage;
-    
+    console.log(data);
     if (data.opcode === 'chat') {
       if (data.data.type === 'leave') {
         setUserList((prev) => prev.filter((name) => name !== data.data.sender));
       } else if (data.data.type === 'join') {
         setUserList((prev) => prev.concat([data.data.sender]));
       }
-    }
 
-    if (data.opcode === 'user_list') {
-      setUserList(data.data.map((item) => item.name));
-    } else {
       setMessages((prev) => prev.concat([data]));
       ref.scroll({ top: ref.scrollHeight });
+    } else if (data.opcode === 'user_list') {
+      setUserList(data.data.map((item) => item.name));
+    } else if (data.opcode === 'error') {
+      setSelectPageError(data.data);
     }
   }
+  
+  let websocket = getWebSocket();
 
   if (websocket) {
     websocket.onmessage = handleWebSocketMessage;
+    websocket.onclose = (event) => {
+      console.dir(event);
+      navigate('/select');
+    }
   }
 
   // eslint-disable-next-line prefer-const
@@ -70,11 +64,6 @@ export const ChatPage: Component = () => {
     }
   };
 
-  const handleEventToggle = (event: MouseEvent) => {
-    event.preventDefault();
-    setIsModalOpen((prev) => !prev);
-  };
-
   onMount(async () => {
     if (!websocket) {
       websocket = await setNewWebSocket(getServerAddress());
@@ -83,7 +72,7 @@ export const ChatPage: Component = () => {
     getUserList(websocket);
 
     const response = await getServerMessage(getServerAddress());
-    const worthyMessages: WSMessage[] = response
+    const worthyMessages: ChatMessage[] = response
       .filter((message) => message.type === 'chat' && message.text !== null)
       .map((message) => ({
         opcode: 'chat',
@@ -100,7 +89,6 @@ export const ChatPage: Component = () => {
   });
 
   onCleanup(() => {
-    console.log("END M<E")
     disconnectFromWebSocket();
   })
 
@@ -111,7 +99,7 @@ export const ChatPage: Component = () => {
           ref={ref}
           class="flex h-11/12 w-full flex-col gap-1 overflow-y-auto overflow-x-hidden border-b-2 border-stone-700"
         >
-          <For each={messages()} fallback={<div>No messages yet</div>}>
+          <For each={messages()} fallback={<div>Brak wiadomości</div>}>
             {(item, index) => {
               const timestamp = new Date(item.data.timestamp).toLocaleString();
 
@@ -178,15 +166,14 @@ export const ChatPage: Component = () => {
           </For>
         </div>
         <div class="flex h-1/12 items-center justify-center">
-          <button onClick={handleEventToggle}>
-            <AiTwotoneSetting width="4em" height="4em" />
+          <button
+            class="border-4 w-32 p-2 border-lime-900 bg-lime-500 hover:brightness-105 rounded-lg"
+            onClick={() => navigate('/select')}
+          >
+            Rozłącz
           </button>
         </div>
       </aside>
-
-      <Show when={isModalOpen() === true}>
-        <SettingsModal closeModal={handleEventToggle} />
-      </Show>
     </div>
   );
 };

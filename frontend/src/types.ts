@@ -65,4 +65,10 @@ export type UserListMessage = {
   }[];
 }
 
-export type WSMessage = JoinChatMessage | TextChatMessage | LeaveChatMessage | UserListMessage;
+export type ErrorMessage = {
+  opcode: 'error';
+  data: string;
+}
+
+export type WSMessage = JoinChatMessage | TextChatMessage | LeaveChatMessage | UserListMessage | ErrorMessage;
+export type ChatMessage = JoinChatMessage | TextChatMessage | LeaveChatMessage;

@@ -1,9 +1,9 @@
-import { Component, createSignal, Match, onMount, Switch } from "solid-js";
+import { Component, createSignal, Match, Show, Switch } from "solid-js";
 import { useNavigate } from '@solidjs/router'
 import { AiFillEye } from "../components/icons/AiFillEye";
 import { AiFillEyeInvisible } from "../components/icons/AiFillEyeInvisible";
 import { setAccessToken } from "../services/auth.service";
-import { postLogin, postRegister } from "../services/ky.service";
+import { postLogin, postRegister } from "../services/fetch.service";
 
 import MeepoChatLogo from '../../public/meepo-chat-logo.png';
 import { Button } from "../components/Button";
@@ -17,6 +17,8 @@ export const RegisterPage: Component = () => {
     name: "IsPasswordVisible",
   });
 
+  const [error, setError] = createSignal("", { name: "error" });
+
   const handleSubmit = async (event: MouseEvent) => {
     event.preventDefault();
 
@@ -25,8 +27,11 @@ export const RegisterPage: Component = () => {
       const loginResponse = await postLogin({login: login(), password: password() });
       setAccessToken(loginResponse.access_token);
       navigate('/select');
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(error);
+      if (typeof error === 'object' && 'detail' in error && typeof error.detail === 'string') {
+        setError(error.detail);
+      }
     }
   };
 
@@ -96,6 +101,11 @@ export const RegisterPage: Component = () => {
           onClick={handleSubmit}
           text="Zarejestruj się"
         />
+        <Show when={error().length > 0}>
+          <div>
+            <span class="text-red-600">{error()}</span>
+          </div>
+        </Show>
       </form>
     </div>
   )
