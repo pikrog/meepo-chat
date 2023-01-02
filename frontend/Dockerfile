@@ -30,7 +30,7 @@ RUN npm prune --omit=dev
 FROM httpd:2.4.54
 
 # Copy only necessary application files
-# COPY --from=build --chown=node /tmp/dist/ dist/
 COPY --from=build /tmp/dist/ /usr/local/apache2/htdocs/
+COPY ./apache.conf /usr/local/apache2/conf/httpd.conf
 
 EXPOSE 80
