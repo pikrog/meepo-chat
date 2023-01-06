@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import Enum
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, PositiveInt
 from typing import Any
 
 
@@ -51,3 +51,8 @@ class LoggedChatMessage(BaseModel):
             advertised_address=advertised_address,
             advertised_port=advertised_port,
         )
+
+
+class ChatMessagesRequest(BaseModel):
+    start_id: str | PositiveInt | None = Field(default=None, regex=r"^\(?\d+(?:\-\d+)?$")
+    count: PositiveInt | None = None

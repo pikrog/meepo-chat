@@ -1,6 +1,6 @@
 from fastapi.encoders import jsonable_encoder
 
-from app.core.models.chat import ChatMessageIn, ChatMessage, ChatMessageType
+from app.core.models.chat import ChatMessageIn, ChatMessage, ChatMessageType, ChatMessagesRequest
 from app.core.models.socket import SocketMessage, SocketOpcode
 from app.core.models.user import User
 from app.core.server.client import AbstractChatClient
@@ -37,6 +37,11 @@ class ChatClientHandler:
                 text=message_in.text
             )
             await self.__service.send_message(chat_message)
+        elif message.opcode == SocketOpcode.messages:
+            request = ChatMessagesRequest(**message.data)
+            messages = await self.__service.get_messages(request.start_id, request.count)
+            response = SocketMessage.from_chat_message_list(messages)
+            await self._send_json(response)
         return False
 
     async def _execute_operations(self):
