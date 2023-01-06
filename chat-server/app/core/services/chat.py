@@ -62,10 +62,11 @@ class ChatService:
             self.__advertising_settings.ADVERTISED_ADDRESS,
             self.__advertising_settings.ADVERTISED_PORT
         )
-        await asyncio.gather(
+        results = await asyncio.gather(
             self.__repository.append_message(message),
             self.__log_exchange.publish(logged_message),
         )
+        message.id = results[0]
         socket_message = SocketMessage.from_chat_message(message)
         await self.__group.send_message(socket_message)
 

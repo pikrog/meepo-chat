@@ -11,7 +11,7 @@ class ChatRepository:
         self.__redis = redis
 
     async def append_message(self, message: ChatMessage):
-        await self.__redis.xadd(
+        return await self.__redis.xadd(
             name=self.__messages_stream,
             fields=jsonable_encoder(message, exclude_unset=True, exclude={"id"})
         )
