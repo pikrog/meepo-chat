@@ -13,6 +13,7 @@ class SocketOpcode(str, Enum):
     user_list = "user_list"
     quit = "quit"
     chat = "chat"
+    messages = "messages"
     error = "error"
 
 
@@ -23,6 +24,10 @@ class SocketMessage(BaseModel):
     @staticmethod
     def from_chat_message(message: ChatMessage):
         return SocketMessage(opcode=SocketOpcode.chat, data=message)
+
+    @staticmethod
+    def from_chat_message_list(messages: list[ChatMessage]):
+        return SocketMessage(opcode=SocketOpcode.messages, data=messages)
 
     @staticmethod
     def from_error(error: str):
