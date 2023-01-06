@@ -1,5 +1,6 @@
 from fastapi.encoders import jsonable_encoder
 
+from app.core.models.chat import GenericChatError
 from app.core.models.socket import SocketMessage, SocketOpcode
 from app.core.server.client import AbstractChatClient
 
@@ -14,8 +15,10 @@ async def get_token_by_handshake(client: AbstractChatClient) -> str:
             if message.opcode == SocketOpcode.auth:
                 return message.data
             else:
-                error_message = SocketMessage.from_error("not authenticated")
+                error = GenericChatError("not authenticated")
+                error_message = SocketMessage.from_error(error)
                 await client.send_json(jsonable_encoder(error_message))
-        except ValueError as e:
-            response = SocketMessage.from_error(str(e))
+        except ValueError as exc:
+            error = GenericChatError(str(exc))
+            response = SocketMessage.from_error(error)
             await client.send_json(jsonable_encoder(response))

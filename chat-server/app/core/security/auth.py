@@ -4,28 +4,29 @@ from jose import jwt, JWTError, ExpiredSignatureError
 
 from app.core.config import Settings
 from app.core.container import Container
+from app.core.models.chat import ChatError
 from app.core.models.jwt import JwtPayload
 from app.core.models.user import User
 
 
-class CredentialsError(Exception):
-    def __init__(self, *args):
-        super().__init__(*args)
+class CredentialsError(ChatError):
+    def __init__(self, name, message, *args):
+        super().__init__(name, message, *args)
 
 
 class InvalidCredentialsError(CredentialsError):
     def __init__(self):
-        super().__init__("invalid credentials were provided")
+        super().__init__("invalid_credentials", "invalid credentials were provided")
 
 
 class CredentialsExpiredError(CredentialsError):
     def __init__(self):
-        super().__init__("credentials expired")
+        super().__init__("credentials_expired", "credentials expired")
 
 
 class NoCredentialsError(CredentialsError):
     def __init__(self):
-        super().__init__("no credentials were provided")
+        super().__init__("no_credentials", "no credentials were provided")
 
 
 def get_token_from_cookie(access_token: str | None = Cookie(default=None)):

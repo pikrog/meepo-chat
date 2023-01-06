@@ -4,6 +4,7 @@ from fastapi.encoders import jsonable_encoder
 from starlette.websockets import WebSocket
 
 from app.core.container import Container
+from app.core.models.chat import QuitMessage
 from app.core.models.socket import SocketMessage
 from app.core.security.auth import get_user, CredentialsError, get_token_from_query_param, get_token_from_cookie
 from app.core.server.auth import get_token_by_handshake
@@ -32,8 +33,9 @@ async def websocket_endpoint(
             await chat_client.send_json(jsonable_encoder(auth_success_message))
             chat_client_handler = ChatClientHandler(chat_service, chat_client, user)
             await chat_client_handler.handle()
-        except CredentialsError as exc:
-            error_message = SocketMessage.from_error(str(exc))
+        except CredentialsError as error:
+            quit_message = QuitMessage.from_error(error)
+            error_message = SocketMessage.from_quit_message(quit_message)
             await chat_client.send_json(jsonable_encoder(error_message))
             await chat_client.close()
     except DisconnectException:

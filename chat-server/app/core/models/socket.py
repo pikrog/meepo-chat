@@ -3,7 +3,7 @@ from typing import Any
 
 from pydantic import BaseModel
 
-from app.core.models.chat import ChatMessage
+from app.core.models.chat import ChatMessage, ChatError, QuitMessage
 from app.core.models.user import User
 
 
@@ -30,7 +30,7 @@ class SocketMessage(BaseModel):
         return SocketMessage(opcode=SocketOpcode.messages, data=messages)
 
     @staticmethod
-    def from_error(error: str):
+    def from_error(error: ChatError):
         return SocketMessage(opcode=SocketOpcode.error, data=error)
 
     @staticmethod
@@ -42,7 +42,7 @@ class SocketMessage(BaseModel):
         return SocketMessage(opcode=SocketOpcode.heartbeat, data=message)
 
     @staticmethod
-    def create_quit(message: str = "unknown reason"):
+    def from_quit_message(message: QuitMessage):
         return SocketMessage(opcode=SocketOpcode.quit, data=message)
 
     @staticmethod

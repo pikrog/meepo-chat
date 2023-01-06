@@ -1,6 +1,7 @@
 from fastapi.encoders import jsonable_encoder
 
-from app.core.models.chat import ChatMessageIn, ChatMessage, ChatMessageType, ChatMessagesRequest
+from app.core.models.chat import ChatMessageIn, ChatMessage, ChatMessageType, ChatMessagesRequest, GenericChatError, \
+    QuitMessage
 from app.core.models.socket import SocketMessage, SocketOpcode
 from app.core.models.user import User
 from app.core.server.client import AbstractChatClient
@@ -18,7 +19,7 @@ class ChatClientHandler:
 
     async def _execute_single_operation(self, message: SocketMessage):
         if message.opcode == SocketOpcode.quit:
-            response = SocketMessage.create_quit(message.data)
+            response = SocketMessage.from_quit_message(message.data)
             await self._send_json(response)
             return True
         elif message.opcode == SocketOpcode.heartbeat:
@@ -51,8 +52,9 @@ class ChatClientHandler:
                 payload = await self.__client.receive_json()
                 message = SocketMessage(**payload)
                 final_operation = await self._execute_single_operation(message)
-            except ValueError as e:
-                response = SocketMessage.from_error(str(e))
+            except ValueError as exc:
+                error = GenericChatError(str(exc))
+                response = SocketMessage.from_error(error)
                 await self._send_json(response)
 
     async def handle(self):
@@ -60,9 +62,10 @@ class ChatClientHandler:
             await self.__service.join(self.__client, self.__user)
             await self._execute_operations()
             await self.__client.close()
-        except JoinError as e:
-            error_message = SocketMessage.from_error(str(e))
-            await self._send_json(error_message)
+        except JoinError as error:
+            quit_message = QuitMessage.from_error(error)
+            response_message = SocketMessage.from_quit_message(quit_message)
+            await self._send_json(response_message)
             await self.__client.close()
         finally:
             await self.__service.leave(self.__client)

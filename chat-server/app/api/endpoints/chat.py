@@ -4,7 +4,7 @@ from fastapi.params import Query
 from pydantic import PositiveInt
 
 from app.core.container import Container
-from app.core.models.chat import ChatMessage, ChatMessageIn, ChatMessageType, ChatMessagesRequest
+from app.core.models.chat import ChatMessage, ChatMessageIn, ChatMessageType, ChatMessagesRequest, ChatError
 from app.core.models.user import User
 from app.core.security.auth import get_user
 from app.core.services.chat import ChatService
@@ -12,9 +12,9 @@ from app.core.services.chat import ChatService
 router = APIRouter(prefix="/chat")
 
 
-class UserNotInRoomError(Exception):
+class UserNotInRoomError(ChatError):
     def __init__(self):
-        super().__init__("the user is not in the room")
+        super().__init__("user_not_in_room", "the user is not in the room")
 
 
 @router.get("/messages")

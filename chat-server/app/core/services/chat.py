@@ -2,7 +2,7 @@ import asyncio
 
 from app.core.config import Settings, AdvertisingSettings
 from app.core.exchanges.log import LogExchange
-from app.core.models.chat import ChatMessage, ChatMessageType, LoggedChatMessage
+from app.core.models.chat import ChatMessage, ChatMessageType, LoggedChatMessage, ChatError
 from app.core.models.socket import SocketMessage
 from app.core.models.user import User
 from app.core.repositories.chat import ChatRepository
@@ -10,19 +10,19 @@ from app.core.server.client import AbstractChatClient
 from app.core.server.group import ChatClientGroup
 
 
-class JoinError(Exception):
-    def __init__(self, *args):
-        super().__init__(*args)
+class JoinError(ChatError):
+    def __init__(self, name, message, *args):
+        super().__init__(name, message, *args)
 
 
-class AlreadyInRoomError(JoinError):
+class UserAlreadyInRoomError(JoinError):
     def __init__(self):
-        super().__init__("the user is already in the room")
+        super().__init__("user_already_in_room", "the user is already in the room")
 
 
 class FullRoomError(JoinError):
     def __init__(self):
-        super().__init__("the chat room is full")
+        super().__init__("full_room", "the room is full")
 
 
 class ChatService:
@@ -87,7 +87,7 @@ class ChatService:
 
     async def join(self, client: AbstractChatClient, user: User):
         if self.is_user_in_list(user):
-            raise AlreadyInRoomError
+            raise UserAlreadyInRoomError
         if self.get_num_clients() >= self.__settings.MAX_CLIENTS:
             raise FullRoomError
 

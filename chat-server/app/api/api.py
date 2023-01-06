@@ -1,7 +1,8 @@
 from fastapi import APIRouter, FastAPI
+from fastapi.encoders import jsonable_encoder
 from starlette import status
 from starlette.requests import Request
-from starlette.responses import PlainTextResponse
+from starlette.responses import PlainTextResponse, JSONResponse
 
 from app.api.endpoints import chat, server
 from app.api.endpoints.chat import UserNotInRoomError
@@ -21,11 +22,11 @@ def get_api_router():
 
 
 def credentials_error_handler(_: Request, exc: CredentialsError):
-    return PlainTextResponse(status_code=status.HTTP_401_UNAUTHORIZED, content=str(exc))
+    return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content=jsonable_encoder(exc))
 
 
 def user_not_in_room_handler(_: Request, exc: UserNotInRoomError):
-    return PlainTextResponse(status_code=status.HTTP_403_FORBIDDEN, content=str(exc))
+    return JSONResponse(status_code=status.HTTP_403_FORBIDDEN, content=jsonable_encoder(exc))
 
 
 def setup_api(app: FastAPI):

@@ -56,3 +56,38 @@ class LoggedChatMessage(BaseModel):
 class ChatMessagesRequest(BaseModel):
     start_id: str | PositiveInt | None = Field(default=None, regex=r"^\(?\d+(?:\-\d+)?$")
     count: PositiveInt | None = None
+
+
+class ChatError(Exception):
+    def __init__(self, name: str, message: str, *args):
+        self.name = name
+        self.message = message
+        super().__init__(message, *args)
+
+
+class GenericChatError(ChatError):
+    def __init__(self, message: str):
+        super().__init__("generic", message)
+
+
+class QuitReason(str, Enum):
+    error = "error"
+    kick = "kick"
+    request = "request"
+
+
+class QuitMessage(BaseModel):
+    reason: QuitReason
+    data: Any
+
+    @staticmethod
+    def from_error(error: ChatError):
+        return QuitMessage(reason=QuitReason.error, data=error)
+
+    @staticmethod
+    def from_kick(kick_reason: str | None = None):
+        return QuitMessage(reason=QuitReason.kick, data=kick_reason)
+
+    @staticmethod
+    def from_request():
+        return QuitMessage(reason=QuitReason.request, data=None)
