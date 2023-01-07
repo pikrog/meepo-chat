@@ -38,14 +38,14 @@ export default function ChatPage() {
 
     chatServer = new ChatServerWebSocket(getFromLocalStorage('server_address') ?? '', {
       onChatMessage: () => {
-        ref?.scrollTo({ top: ref.clientHeight });
+        ref?.scrollTo({ top: ref.scrollHeight });
       },
       onOpen: () => {
         chatServer?.fetchUserList();
         chatServer?.fetchMessages();
       },
       onMessages: () => {
-        ref?.scrollTo({ top: ref.clientHeight });
+        ref?.scrollTo({ top: ref.scrollHeight });
       },
        onClose: () => {
         if (!shouldReconnect()) {
