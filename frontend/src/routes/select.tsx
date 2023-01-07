@@ -3,12 +3,13 @@ import { Button } from "../components/Button";
 
 import { redirectToLoginIfNotLoggedIn, setAccessToken } from "../services/auth.service";
 import { setServerAddress } from "../services/chat.service";
-import { FullServerInfo, getServerInfo, getServers } from "../services/fetch.service";
+import { FullServerInfo, getServerInfo, getServers, ServerInfo } from "../services/fetch.service";
 
 import MeepoChatLogo from '../../public/meepo-chat-logo.png';
 import { setInLocalStorage } from "../services/local-storage.service";
 import { useNavigate } from "solid-start";
 import { getWSError, setWSError } from "../services/websocket.service";
+import { filterOutEmpty } from "../lib/util";
 
 export type OnSubmitEvent = Event & {
   submitter: HTMLElement;
@@ -41,17 +42,25 @@ export default function SelectPage() {
   const fetchServers = async () => {
     if (typeof window !== 'undefined') {
       const response = await getServers()
-      const serverInfos = await Promise.all(
-        response.map(async (server) => await getServerInfo(server.address))
-        )
-        
-        const servers = response.map((server, idx) => ({
-          ...server,
-          ...serverInfos[idx],
-        }))
-        
-        setServers(servers);
-      }
+      const servers = await Promise.all(
+        response.map(async (server, idx) => {
+          try {
+            const serverInfo = await getServerInfo(server.address)
+
+            return {
+              ...serverInfo,
+              ...response[idx]
+            }
+          } catch (error) {
+            return null;
+          }
+        })
+      );
+
+      const filteredServers = servers.filter(filterOutEmpty);
+      
+      setServers(filteredServers);
+    }
   };
 
   let interval: NodeJS.Timer | undefined = undefined;

@@ -103,7 +103,7 @@ export const getServerMessage = async (serverAddress: string) => {
   return await response.json() as ReponseMessage[];
 };
 
-type ServerInfo = {
+export type ServerInfo = {
   server_name: string;
   num_clients: number;
   max_clients: number;
