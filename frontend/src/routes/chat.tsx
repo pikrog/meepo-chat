@@ -2,9 +2,10 @@ import { createSignal, For, onMount, onCleanup } from "solid-js";
 
 import { addEmojisToString } from "../lib/emojiMap";
 import { OnInput, OnKeyPress, Ref } from "../types";
-import { ChatServerWebSocket, getMessages, getUserList } from "../services/websocket.service";
+import { ChatServerWebSocket, getMessages, getUserList, shouldReconnect } from "../services/websocket.service";
 import { getFromLocalStorage } from "../services/local-storage.service";
 import { useNavigate } from "solid-start";
+import { redirectToLoginIfNotLoggedIn } from "../services/auth.service";
 
 export default function ChatPage() {
   const navigate = useNavigate();
@@ -33,9 +34,7 @@ export default function ChatPage() {
   };
 
   onMount(async () => {
-    if ((getFromLocalStorage('access_token') ?? '').length === 0) {
-      navigate('/login');
-    }
+    redirectToLoginIfNotLoggedIn(navigate);
 
     chatServer = new ChatServerWebSocket(getFromLocalStorage('server_address') ?? '', {
       onChatMessage: () => {
@@ -47,7 +46,12 @@ export default function ChatPage() {
       },
       onMessages: () => {
         ref?.scrollTo({ top: ref.clientHeight });
-      }
+      },
+       onClose: () => {
+        if (!shouldReconnect()) {
+          navigate('/select');
+        }
+       }
     });
 
   });

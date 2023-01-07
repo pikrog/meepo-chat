@@ -1,13 +1,13 @@
 import { createSignal, Match, onMount, Show, Switch } from "solid-js";
 import { AiFillEye } from "~/components/AiFillEye";
 import { AiFillEyeInvisible } from "~/components/AiFillEyeInvisible";
-import { setAccessToken } from "../services/auth.service";
+import { redirectToSelectIfLoggedIn, setAccessToken } from "../services/auth.service";
 import { postLogin, postRegister } from "../services/fetch.service";
 
 import MeepoChatLogo from '../../public/meepo-chat-logo.png';
 import { Button } from "../components/Button";
 import { useNavigate } from "solid-start";
-import { getFromLocalStorage } from "../services/local-storage.service";
+import { setInLocalStorage } from "../services/local-storage.service";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -27,6 +27,7 @@ export default function RegisterPage() {
       await postRegister({login: login(), password: password(), pass_comp: passwordConfirm()});
       const loginResponse = await postLogin({login: login(), password: password() });
       setAccessToken(loginResponse.access_token);
+      setInLocalStorage('access_token', loginResponse.access_token);
       navigate('/select');
     } catch (error: unknown) {
       console.error(error);
@@ -39,9 +40,7 @@ export default function RegisterPage() {
   };
 
   onMount(() => {
-    if ((getFromLocalStorage('access_token') ?? '').length > 0) {
-      navigate('/select');
-    }
+    redirectToSelectIfLoggedIn(navigate);
   })
 
   return (

@@ -1,4 +1,5 @@
 // @refresh reload
+import { config } from "dotenv";
 import { Suspense } from "solid-js";
 import {
   Body,
@@ -12,10 +13,24 @@ import {
   Title,
 } from "solid-start";
 import "./root.css";
+import { setAccessToken } from "./services/auth.service";
+import { setServerAddress } from "./services/chat.service";
+import { setMasterServerUrl } from "./services/fetch.service";
+import { getFromLocalStorage } from "./services/local-storage.service";
 
 export default function Root() {
+  if ('cwd' in process) {
+    const result = config()
+    setMasterServerUrl(result.parsed?.VITE_MASTER ?? '');
+  }
+
+  if (typeof window !== 'undefined') {
+    setAccessToken(getFromLocalStorage('access_token') ?? '');
+    setServerAddress(getFromLocalStorage('server_address') ?? '');
+  }
+
   return (
-    <Html lang="en">
+    <Html lang="pl">
       <Head>
         <Title>Meepo Chat</Title>
         <Meta charset="utf-8" />

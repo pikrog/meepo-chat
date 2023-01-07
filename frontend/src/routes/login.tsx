@@ -6,8 +6,8 @@ import { postLogin } from "../services/fetch.service";
 
 import MeepoChatLogo from "../../public/meepo-chat-logo.png";
 import { Button } from "../components/Button";
-import { setAccessToken } from "../services/auth.service";
-import { getFromLocalStorage, setInLocalStorage } from "../services/local-storage.service";
+import { redirectToSelectIfLoggedIn, setAccessToken } from "../services/auth.service";
+import { setInLocalStorage } from "../services/local-storage.service";
 import { A, useNavigate } from "solid-start";
 
 export default function Page() {
@@ -40,9 +40,7 @@ export default function Page() {
   };
 
   onMount(() => {
-    if ((getFromLocalStorage('access_token') ?? '').length > 0) {
-      navigate('/select');
-    }
+    redirectToSelectIfLoggedIn(navigate);
   })
 
   return (

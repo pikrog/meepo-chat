@@ -13,6 +13,8 @@ type ChatServerWebSocketOptions = {
 
 export const [getMessages, setMessages] = createSignal<ChatMessage[]>([]);
 export const [getUserList, setUserList] = createSignal<string[]>([]);
+export const [getWSError, setWSError] = createSignal('');
+export const [shouldReconnect, setShouldReconnect] = createSignal(true);
 
 export class ChatServerWebSocket {
   public readonly chatServerUrl: string;
@@ -44,6 +46,7 @@ export class ChatServerWebSocket {
 
   handleOpen(event: Event) {
     console.info(`[CHAT] (${this.chatServerUrl}) Opening WS`);
+    setShouldReconnect(true);
     this.authenticate();
     
     this.options?.onOpen?.(event);
@@ -86,6 +89,11 @@ export class ChatServerWebSocket {
       this.setMessages(filteredMessages);
 
       this.options?.onMessages?.();
+    } else if (message.opcode === 'error') {
+      if (message.data === 'the user is already in the room') {
+        setWSError('Użytkownik o podanym loginie znajduje się już w tym pokoju');
+        setShouldReconnect(false);
+      }
     }
 
     this.options?.onMessage?.(message);

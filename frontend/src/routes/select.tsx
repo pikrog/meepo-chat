@@ -1,13 +1,14 @@
 import { createSignal, For, onCleanup, onMount, Show } from "solid-js";
 import { Button } from "../components/Button";
 
-import { setAccessToken } from "../services/auth.service";
+import { redirectToLoginIfNotLoggedIn, setAccessToken } from "../services/auth.service";
 import { setServerAddress } from "../services/chat.service";
 import { FullServerInfo, getServerInfo, getServers } from "../services/fetch.service";
 
 import MeepoChatLogo from '../../public/meepo-chat-logo.png';
 import { setInLocalStorage } from "../services/local-storage.service";
 import { useNavigate } from "solid-start";
+import { getWSError, setWSError } from "../services/websocket.service";
 
 export type OnSubmitEvent = Event & {
   submitter: HTMLElement;
@@ -15,8 +16,6 @@ export type OnSubmitEvent = Event & {
   currentTarget: HTMLFormElement;
   target: Element;
 };
-
-export const [selectPageError, setSelectPageError] = createSignal('', { name: 'selectPageError '});
 
 export default function SelectPage() {
   const navigate = useNavigate();
@@ -27,7 +26,6 @@ export default function SelectPage() {
     try {
       setServerAddress(serverAddress);
       setInLocalStorage('server_address', serverAddress);
-      setSelectPageError('');
       navigate('/chat');
     } catch (error) {
       console.error(error);
@@ -41,30 +39,35 @@ export default function SelectPage() {
   };
 
   const fetchServers = async () => {
-    const response = await getServers()
-    const serverInfos = await Promise.all(
-      response.map(async (server) => await getServerInfo(server.address))
-    )
-
-    const servers = response.map((server, idx) => ({
-      ...server,
-      ...serverInfos[idx],
-    }))
-
-    setServers(servers);
+    if (typeof window !== 'undefined') {
+      const response = await getServers()
+      const serverInfos = await Promise.all(
+        response.map(async (server) => await getServerInfo(server.address))
+        )
+        
+        const servers = response.map((server, idx) => ({
+          ...server,
+          ...serverInfos[idx],
+        }))
+        
+        setServers(servers);
+      }
   };
 
-  // const interval = setInterval(() => {
-  //   fetchServers();
-  // }, 5000);
+  let interval: NodeJS.Timer | undefined = undefined;
 
 
   onMount(() => {
+    redirectToLoginIfNotLoggedIn(navigate);
     fetchServers();
+    interval = setInterval(() => {
+      fetchServers();
+    }, 5000);
   });
 
   onCleanup(() => {
-  //  clearInterval(interval); 
+    setWSError('');
+    clearInterval(interval);
   });
 
   return (
@@ -93,9 +96,9 @@ export default function SelectPage() {
           <div class="w-full flex justify-center">
             <Button onClick={handleLogout} text="Wyloguj się" />
           </div>
-          <Show when={selectPageError().length > 0}>
+          <Show when={getWSError().length > 0}>
             <div class="w-full flex justify-center">
-              <span class="text-red-500 text-xl">{selectPageError()}</span>
+              <span class="text-red-500 text-xl">{getWSError()}</span>
             </div>
           </Show>
         </div>

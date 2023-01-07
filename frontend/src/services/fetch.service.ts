@@ -68,9 +68,6 @@ export type GetServer = {
 export const getServers = async () => {
   const response = await fetch(`${masterServerUrl()}/servers`, {
     mode: 'cors',
-      headers: {
-        'Access-Control-Allow-Origin': '*'
-      },
   });
 
   if (!response.ok) {
@@ -128,15 +125,6 @@ export const getServerInfo = async (serverAddress: string) => {
   }
 
   return await response.json() as ServerInfo;
-}
-
-type Envars = {
-  masterServerAddress: string;
-};
-
-export const getEnvars = async () => {
-  const response = await fetch(`${location.origin}/api/master`);
-  return await response.json() as Envars;
 }
 
 export type FullServerInfo = ServerInfo & GetServer;
