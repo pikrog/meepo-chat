@@ -70,5 +70,28 @@ export type ErrorMessage = {
   data: string;
 }
 
-export type WSMessage = JoinChatMessage | TextChatMessage | LeaveChatMessage | UserListMessage | ErrorMessage;
+export type MessageMessageChat = {
+  id: string;
+  type: 'chat';
+  sender: string;
+  sender_id: number;
+  timestamp: string;
+  text: string;
+}
+
+type MessageMessageOther = {
+  id: string;
+  type: 'join' | 'leave';
+  sender: string;
+  sender_id: number;
+  timestamp: string;
+  text: null;
+}
+
+export type MessagesMessage = {
+  opcode: 'messages';
+  data: (MessageMessageChat | MessageMessageOther)[];
+}
+
+export type WSMessage = JoinChatMessage | TextChatMessage | LeaveChatMessage | UserListMessage | ErrorMessage | MessagesMessage;
 export type ChatMessage = JoinChatMessage | TextChatMessage | LeaveChatMessage;

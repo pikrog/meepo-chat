@@ -3,6 +3,7 @@
 .env.example
 
 # compiled output
+.solid
 dist
 node_modules
 .prettierignore

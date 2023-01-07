@@ -28,7 +28,6 @@ export const postLogin = async (loginDto: LoginDto) => {
   }
 
   const json = await response.json() as LoginResponse;
-  document.cookie = `access_token=${json.access_token}`;
   return json;
 };
 

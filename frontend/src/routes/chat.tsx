@@ -1,61 +1,25 @@
-import { Component, createSignal, For, onMount, Show, onCleanup } from "solid-js";
+import { createSignal, For, onMount, onCleanup } from "solid-js";
 
 import { addEmojisToString } from "../lib/emojiMap";
-import { ChatMessage, OnInput, OnKeyPress, Ref, WSMessage } from "../types";
-import { disconnectFromWebSocket, getUserList, getWebSocket, sendChatMessage, setNewWebSocket } from "../services/websocket.service";
-import { getServerMessage } from "../services/fetch.service";
-import { getServerAddress } from "../services/chat.service";
-import { useNavigate } from "@solidjs/router";
-import { selectPageError, setSelectPageError } from "./select.page";
+import { OnInput, OnKeyPress, Ref } from "../types";
+import { ChatServerWebSocket, getMessages, getUserList } from "../services/websocket.service";
+import { getFromLocalStorage } from "../services/local-storage.service";
+import { useNavigate } from "solid-start";
 
-export const ChatPage: Component = () => {
-  const [messages, setMessages] = createSignal<ChatMessage[]>([], {
-    name: "messages",
-  });
-  const [text, setText] = createSignal("", { name: "text" });
-  const [userList, setUserList] = createSignal<string[]>([], { name: "userList" })
-
+export default function ChatPage() {
   const navigate = useNavigate();
-  
-  const handleWebSocketMessage = (message: MessageEvent<string>) => {
-    const data = JSON.parse(message.data) as WSMessage;
-
-    if (data.opcode === 'chat') {
-      if (data.data.type === 'leave') {
-        setUserList((prev) => prev.filter((name) => name !== data.data.sender));
-      } else if (data.data.type === 'join') {
-        setUserList((prev) => prev.concat([data.data.sender]));
-      }
-
-      setMessages((prev) => prev.concat([data]));
-      ref.scroll({ top: ref.scrollHeight });
-    } else if (data.opcode === 'user_list') {
-      setUserList(data.data.map((item) => item.name));
-    } else if (data.opcode === 'error') {
-      setSelectPageError(data.data);
-    }
-  }
-  
-  let websocket = getWebSocket();
-
-  if (websocket) {
-    websocket.onmessage = handleWebSocketMessage;
-    websocket.onclose = () => {
-      if (selectPageError().length === 0) {
-        setSelectPageError("Połączenie zostało niespodziewanie przerwane")
-      }
-      navigate('/select');
-    }
-  }
+  const [text, setText] = createSignal("", { name: "text" });
 
   // eslint-disable-next-line prefer-const
-  let ref: Ref<HTMLDivElement> = null;
+  let ref: Ref<HTMLDivElement> | undefined = undefined;
+
+  let chatServer: ChatServerWebSocket | undefined;
 
   const handleOnKeyPress: OnKeyPress = (event) => {
     if (event.key === "Enter" && event.shiftKey === false) {
       event.preventDefault();
 
-      sendChatMessage(text());
+      chatServer?.postChatMessage(text());
       setText("");
     }
   };
@@ -63,35 +27,35 @@ export const ChatPage: Component = () => {
   const handleOnInput: OnInput = (event) => {
     if (event.inputType === "insertText") {
       setText(addEmojisToString(event.currentTarget.value));
+    } else if (event.inputType === "insertFromPaste") {
+      setText((prev) => prev + event.data);
     }
   };
 
   onMount(async () => {
-    if (!websocket) {
-      websocket = await setNewWebSocket(getServerAddress());
-      websocket.onmessage = handleWebSocketMessage;
+    if ((getFromLocalStorage('access_token') ?? '').length === 0) {
+      navigate('/login');
     }
-    getUserList(websocket);
 
-    const response = await getServerMessage(getServerAddress());
-    const worthyMessages: ChatMessage[] = response
-      .filter((message) => message.type === 'chat' && message.text !== null)
-      .map((message) => ({
-        opcode: 'chat',
-        data: {
-          type: 'chat',
-          sender: message.sender,
-          text: message.text,
-          timestamp: message.timestamp
-        },
-      }));
-    worthyMessages.reverse();
-    setMessages((prev) => worthyMessages.concat(prev));
-    ref.scroll({ top: ref.scrollHeight });
+    chatServer = new ChatServerWebSocket(getFromLocalStorage('server_address') ?? '', {
+      onChatMessage: () => {
+        ref?.scrollTo({ top: ref.clientHeight });
+      },
+      onOpen: () => {
+        chatServer?.fetchUserList();
+        chatServer?.fetchMessages();
+      },
+      onMessages: () => {
+        ref?.scrollTo({ top: ref.clientHeight });
+      }
+    });
+
   });
 
   onCleanup(() => {
-    disconnectFromWebSocket();
+    chatServer?.closeWebSocket();
+    chatServer?.cleanUserList();
+    chatServer?.cleanMessages();
   })
 
   return (
@@ -101,7 +65,7 @@ export const ChatPage: Component = () => {
           ref={ref}
           class="flex h-11/12 w-full flex-col gap-1 overflow-y-auto overflow-x-hidden border-b-2 border-stone-700"
         >
-          <For each={messages()} fallback={<div>Brak wiadomości</div>}>
+          <For each={getMessages()} fallback={<div>Brak wiadomości</div>}>
             {(item, index) => {
               const timestamp = new Date(item.data.timestamp).toLocaleString();
 
@@ -163,7 +127,7 @@ export const ChatPage: Component = () => {
       <aside class="flex h-full w-48 flex-col border-l-2 border-stone-700 indent-2">
         <div class="h-11/12">
           <div class="font-bold">Lista użytkowników</div>
-          <For each={userList()} fallback={<div>Brak użytkowników</div>}>
+          <For each={getUserList()} fallback={<div>Brak użytkowników</div>}>
             {(item) => <div id={`aside-user-${item}`}>{item}</div>}
           </For>
         </div>

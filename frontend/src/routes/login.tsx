@@ -1,16 +1,16 @@
-import { A, useNavigate } from "@solidjs/router";
-import { Component, createSignal, Match, Show, Switch } from "solid-js";
+import { createSignal, Match, onMount, Show, Switch } from "solid-js";
 
-import { AiFillEye } from "../components/icons/AiFillEye";
-import { AiFillEyeInvisible } from "../components/icons/AiFillEyeInvisible";
+import { AiFillEye } from "~/components/AiFillEye";
+import { AiFillEyeInvisible } from "~/components/AiFillEyeInvisible";
 import { postLogin } from "../services/fetch.service";
 
-import MeepoChatLogo from '../../../public/meepo-chat-logo.png';
+import MeepoChatLogo from "../../public/meepo-chat-logo.png";
 import { Button } from "../components/Button";
 import { setAccessToken } from "../services/auth.service";
-import { setInLocalStorage } from "../services/local-storage.service";
+import { getFromLocalStorage, setInLocalStorage } from "../services/local-storage.service";
+import { A, useNavigate } from "solid-start";
 
-export const LoginPage: Component = () => {
+export default function Page() {
   const navigate = useNavigate();
 
   const [login, setLogin] = createSignal("", { name: "login" });
@@ -38,6 +38,12 @@ export const LoginPage: Component = () => {
       }
     }
   };
+
+  onMount(() => {
+    if ((getFromLocalStorage('access_token') ?? '').length > 0) {
+      navigate('/select');
+    }
+  })
 
   return (
     <div class="grid h-screen w-screen place-items-center">

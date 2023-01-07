@@ -1,4 +1,4 @@
-import { JSX } from "solid-js";
+import type { JSX } from "solid-js";
 
 export const AiFillEye = (props: JSX.SvgSVGAttributes<SVGSVGElement>) => {
   return (

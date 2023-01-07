@@ -19,8 +19,7 @@ RUN npm ci
 COPY --chown=node . .
 
 # Run the build task
-RUN npm run vite:build
-RUN npm run nest:build
+RUN npm run build
 
 # Delete unused development dependencies
 RUN npm prune --omit=dev
@@ -43,10 +42,10 @@ WORKDIR ${APP_PATH}
 # Copy only necessary application files
 COPY --from=build --chown=node:node /home/node/package*.json /home/node/
 COPY --from=build --chown=node:node /home/node/node_modules/ /home/node/node_modules/
+COPY --from=build --chown=node:node /home/node/.solid/ /home/node/.solid/
 COPY --from=build --chown=node:node /home/node/dist/ /home/node/dist/
-COPY --from=build --chown=node:node /home/node/.vite/ /home/node/.vite/
 COPY --from=build --chown=node:node /home/node/public/ /home/node/public/
 
 # Run Node server
-CMD ["node", "dist/main"]
+CMD ["node", "dist/server"]
 EXPOSE 3000

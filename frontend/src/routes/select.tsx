@@ -1,14 +1,13 @@
-import { useNavigate } from "@solidjs/router";
-import { Component, createSignal, For, onCleanup, onMount, Show } from "solid-js";
+import { createSignal, For, onCleanup, onMount, Show } from "solid-js";
 import { Button } from "../components/Button";
 
 import { setAccessToken } from "../services/auth.service";
 import { setServerAddress } from "../services/chat.service";
 import { FullServerInfo, getServerInfo, getServers } from "../services/fetch.service";
 
-import MeepoChatLogo from '../../../public/meepo-chat-logo.png';
-import { setNewWebSocket } from "../services/websocket.service";
+import MeepoChatLogo from '../../public/meepo-chat-logo.png';
 import { setInLocalStorage } from "../services/local-storage.service";
+import { useNavigate } from "solid-start";
 
 export type OnSubmitEvent = Event & {
   submitter: HTMLElement;
@@ -19,7 +18,7 @@ export type OnSubmitEvent = Event & {
 
 export const [selectPageError, setSelectPageError] = createSignal('', { name: 'selectPageError '});
 
-export const SelectPage: Component = () => {
+export default function SelectPage() {
   const navigate = useNavigate();
 
   const [servers, setServers] = createSignal<FullServerInfo[]>([], { name: "servers" });
@@ -27,7 +26,6 @@ export const SelectPage: Component = () => {
   const handleServerChoice = async (serverAddress: string) => {
     try {
       setServerAddress(serverAddress);
-      await setNewWebSocket(serverAddress)
       setInLocalStorage('server_address', serverAddress);
       setSelectPageError('');
       navigate('/chat');
@@ -56,9 +54,9 @@ export const SelectPage: Component = () => {
     setServers(servers);
   };
 
-  const interval = setInterval(() => {
-    fetchServers();
-  }, 5000);
+  // const interval = setInterval(() => {
+  //   fetchServers();
+  // }, 5000);
 
 
   onMount(() => {
@@ -66,7 +64,7 @@ export const SelectPage: Component = () => {
   });
 
   onCleanup(() => {
-   clearInterval(interval); 
+  //  clearInterval(interval); 
   });
 
   return (
