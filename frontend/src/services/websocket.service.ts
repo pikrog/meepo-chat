@@ -93,6 +93,17 @@ export class ChatServerWebSocket {
       if (message.data === 'the user is already in the room') {
         setWSError('Użytkownik o podanym loginie znajduje się już w tym pokoju');
         setShouldReconnect(false);
+      } else if (message.data === 'the chat room is full') {
+        setWSError('Pokój jest pełny');
+        setShouldReconnect(false);
+      } else if (message.data === 'credentials expired') {
+        setWSError('Dane logowania wygasły');
+        setShouldReconnect(false);
+      } else if (message.data === 'no credentials were provided') {
+        setWSError('Błąd danych logowania');
+        setShouldReconnect(false);
+      } else {
+        setWSError('Nieznany błąd');
       }
     }
 
