@@ -19,7 +19,7 @@ import { setMasterServerUrl } from "./services/fetch.service";
 import { getFromLocalStorage } from "./services/local-storage.service";
 
 export default function Root() {
-  if ('cwd' in process) {
+  if (typeof process !== 'undefined' && 'cwd' in process) {
     const result = config()
     setMasterServerUrl(result.parsed?.VITE_MASTER ?? '');
   }
