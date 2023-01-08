@@ -57,8 +57,8 @@ def generate_token(userid: int, username: str):
         "user_name": username
     }
     settings = get_settings()
-    key = settings.JWT_SECRET
-    encoded = jwt.encode(payload, key, algorithm="HS256")
+    key = settings.JWT_PRIVATE_KEY
+    encoded = jwt.encode(payload, key, algorithm="RS256")
     return encoded
 
 

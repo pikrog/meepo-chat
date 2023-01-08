@@ -44,7 +44,7 @@ def get_user(
     if token is None or not token:
         raise NoCredentialsError
     try:
-        decoded_token = jwt.decode(token, settings.JWT_SECRET, issuer=settings.JWT_ISSUER)
+        decoded_token = jwt.decode(token, settings.JWT_PUBLIC_KEY, issuer=settings.JWT_ISSUER, algorithms=["RS256"])
         payload = JwtPayload(**decoded_token)
         return User(
             id=payload.user_id,
