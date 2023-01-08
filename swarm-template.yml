@@ -39,7 +39,7 @@ services:
         environment:
             BROKER_URL: ${BROKER_URL}
             DATABASE_URL: ${DATABASE_URL}
-            JWT_SECRET: ${JWT_SECRET}
+            JWT_PRIVATE_KEY: ${JWT_PRIVATE_KEY}
             BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS}
     front-end:
         image: pikrog/meepo-front-end:latest
