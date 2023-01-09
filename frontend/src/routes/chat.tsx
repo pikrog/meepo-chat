@@ -1,16 +1,18 @@
-import { createSignal, For, onMount, onCleanup } from "solid-js";
+import { createSignal, For, onMount, onCleanup, Show } from "solid-js";
 
 import { addEmojisToString } from "../lib/emojiMap";
 import { OnInput, OnKeyPress, Ref } from "../types";
-import { ChatServerWebSocket, getMessages, getUserList, shouldReconnect } from "../services/websocket.service";
+import { ChatServerWebSocket, getMessages, getUserList, setWSError, shouldReconnect } from "../services/websocket.service";
 import { getFromLocalStorage } from "../services/local-storage.service";
 import { useNavigate } from "solid-start";
 import { redirectToLoginIfNotLoggedIn } from "../services/auth.service";
+import { Spinner } from "../components/Spinner";
 
 export default function ChatPage() {
   const navigate = useNavigate();
   const [text, setText] = createSignal("", { name: "text" });
-
+  const [isClosed, setIsClosed] = createSignal(false, { name: "isClosed" });
+  let reconnetCount = 0;
   // eslint-disable-next-line prefer-const
   let ref: Ref<HTMLDivElement> | undefined = undefined;
 
@@ -34,6 +36,7 @@ export default function ChatPage() {
   };
 
   onMount(async () => {
+    reconnetCount = 0;
     redirectToLoginIfNotLoggedIn(navigate);
 
     chatServer = new ChatServerWebSocket(getFromLocalStorage('server_address') ?? '', {
@@ -41,14 +44,21 @@ export default function ChatPage() {
         ref?.scrollTo({ top: ref.scrollHeight });
       },
       onOpen: () => {
+        setIsClosed(false);
         chatServer?.fetchUserList();
         chatServer?.fetchMessages();
       },
       onMessages: () => {
         ref?.scrollTo({ top: ref.scrollHeight });
       },
-       onClose: () => {
-        if (!shouldReconnect()) {
+      onClose: () => {
+        setIsClosed(true);
+
+        if (shouldReconnect() && reconnetCount < 10) {
+          chatServer?.reconnect();
+          reconnetCount++;
+        } else {
+          setWSError('Połączenie z serwerem czatu zostało niespodziewanie zamknięte');
           navigate('/select');
         }
        }
@@ -63,7 +73,15 @@ export default function ChatPage() {
   })
 
   return (
-    <div class="flex h-screen w-screen">
+    <div class="flex h-screen w-screen relative">
+      <Show when={isClosed()}>
+        <div class="absolute z-10 w-full h-full grid place-items-center" style={{ "background-color": 'rgba(0, 0, 0, 0.5)'}}>
+          <div class="bg-stone-200 p-8 rounded-xl flex items-center justify-center gap-2">
+            <span class="text-red-500 text-2xl font-bold">Nie można połączyć się z serwerem</span>
+            <Spinner />
+          </div>
+        </div>
+      </Show>
       <main class="h-screen flex-1">
         <div
           ref={ref}

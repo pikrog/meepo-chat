@@ -1,5 +1,6 @@
 import { json } from "solid-start";
 
 export function GET() {
-  return json({ url: process.env.VITE_MASTER }); 
+  console.log(process.env);
+  return json({ url: process.env.VITE_MASTER ?? import.meta.env.VITE_MASTER }); 
 }

@@ -30,11 +30,14 @@ export default function Page() {
       setInLocalStorage('access_token', response.access_token);
       navigate('/select');
     } catch (error: unknown) {
-      console.error(error);
       if (typeof error === 'object' && error && 'detail' in error && typeof error.detail === 'string') {
-        setError(error.detail);
+        if (error.detail === 'Invalid credentials') {
+          setError('Błędne dane logowania');
+        } else {
+          setError(error.detail);
+        }
       } else {
-        setError("Wystąpił nieoczekiwany błąd");
+        setError("Wystąpił niespodziewany błąd");
       }
     }
   };

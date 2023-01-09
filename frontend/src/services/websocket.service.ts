@@ -18,7 +18,7 @@ export const [shouldReconnect, setShouldReconnect] = createSignal(true);
 
 export class ChatServerWebSocket {
   public readonly chatServerUrl: string;
-  public readonly websocket: WebSocket;
+  public websocket: WebSocket;
   public readonly options?: ChatServerWebSocketOptions;
 
   public readonly getMessages: Accessor<ChatMessage[]>;
@@ -37,11 +37,22 @@ export class ChatServerWebSocket {
     this.chatServerUrl = chatServerUrl;
     this.options = options;
 
-    this.websocket = new WebSocket(`ws://${chatServerUrl}/ws`);
-    this.websocket.onopen = this.handleOpen.bind(this);
-    this.websocket.onmessage = this.handleMessage.bind(this);
-    this.websocket.onerror = this.handleError.bind(this);
-    this.websocket.onclose = this.handleClose.bind(this);
+    this.websocket = this.createWebSocket(chatServerUrl);
+  }
+
+  private createWebSocket(chatServerUrl: string) {
+    const websocket = new WebSocket(`ws://${chatServerUrl}/ws`); 
+
+    websocket.onopen = this.handleOpen.bind(this);
+    websocket.onmessage = this.handleMessage.bind(this);
+    websocket.onerror = this.handleError.bind(this);
+    websocket.onclose = this.handleClose.bind(this);
+
+    return websocket;
+  }
+
+  reconnect() {
+    this.websocket = this.createWebSocket(this.chatServerUrl);
   }
 
   handleOpen(event: Event) {

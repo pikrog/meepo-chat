@@ -32,7 +32,13 @@ export default function RegisterPage() {
     } catch (error: unknown) {
       console.error(error);
       if (typeof error === 'object' && error && 'detail' in error && typeof error.detail === 'string') {
-        setError(error.detail);
+        if (error.detail === 'Passwords do not match') {
+          setError("Hasła nie są identyczne");
+        } else if (error.detail === 'This user name is already taken') {
+          setError("Istnieje już użytkownik o takim loginie");
+        } else {
+          setError(error.detail);
+        }
       } else {
         setError("Wystąpił nieoczekiwany błąd");
       }

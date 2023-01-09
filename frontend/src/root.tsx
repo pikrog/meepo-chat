@@ -2,7 +2,6 @@
 import { onMount, Suspense } from "solid-js";
 import {
   Body,
-  createRouteData,
   ErrorBoundary,
   FileRoutes,
   Head,
