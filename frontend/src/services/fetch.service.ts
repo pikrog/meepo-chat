@@ -1,6 +1,6 @@
 import { createSignal } from "solid-js";
 
-export const [masterServerUrl, setMasterServerUrl] = createSignal('http://localhost:8080', {
+export const [masterServerUrl, setMasterServerUrl] = createSignal('', {
   name: 'masterServerUrl'
 })
 

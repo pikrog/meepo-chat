@@ -1,8 +1,8 @@
 // @refresh reload
-import { config } from "dotenv";
-import { Suspense } from "solid-js";
+import { onMount, Suspense } from "solid-js";
 import {
   Body,
+  createRouteData,
   ErrorBoundary,
   FileRoutes,
   Head,
@@ -19,15 +19,16 @@ import { setMasterServerUrl } from "./services/fetch.service";
 import { getFromLocalStorage } from "./services/local-storage.service";
 
 export default function Root() {
-  if (typeof process !== 'undefined' && 'cwd' in process) {
-    const result = config()
-    setMasterServerUrl(result.parsed?.VITE_MASTER ?? '');
-  }
-
   if (typeof window !== 'undefined') {
     setAccessToken(getFromLocalStorage('access_token') ?? '');
     setServerAddress(getFromLocalStorage('server_address') ?? '');
   }
+
+  onMount(async () => {
+    const response = await fetch(`${location.origin}/api/master`);
+    const json = await response.json();
+    setMasterServerUrl(json.url);
+  })
 
   return (
     <Html lang="pl">
