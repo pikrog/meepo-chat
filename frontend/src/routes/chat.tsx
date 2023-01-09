@@ -2,7 +2,7 @@ import { createSignal, For, onMount, onCleanup, Show } from "solid-js";
 
 import { addEmojisToString } from "../lib/emojiMap";
 import { OnInput, OnKeyPress, Ref } from "../types";
-import { ChatServerWebSocket, getMessages, getUserList, setWSError, shouldReconnect } from "../services/websocket.service";
+import { ChatServerWebSocket, getMessages, getUserList, getWSError, setShouldReconnect, setWSError, shouldReconnect } from "../services/websocket.service";
 import { getFromLocalStorage } from "../services/local-storage.service";
 import { useNavigate } from "solid-start";
 import { redirectToLoginIfNotLoggedIn } from "../services/auth.service";
@@ -35,6 +35,12 @@ export default function ChatPage() {
     }
   };
 
+  const handleLeave = () => {
+    setShouldReconnect(false);
+    setWSError('');
+    navigate('/select');
+  };
+
   onMount(async () => {
     reconnetCount = 0;
     redirectToLoginIfNotLoggedIn(navigate);
@@ -58,7 +64,6 @@ export default function ChatPage() {
           chatServer?.reconnect();
           reconnetCount++;
         } else {
-          setWSError('Połączenie z serwerem czatu zostało niespodziewanie zamknięte');
           navigate('/select');
         }
        }
@@ -76,9 +81,17 @@ export default function ChatPage() {
     <div class="flex h-screen w-screen relative">
       <Show when={isClosed()}>
         <div class="absolute z-10 w-full h-full grid place-items-center" style={{ "background-color": 'rgba(0, 0, 0, 0.5)'}}>
-          <div class="bg-stone-200 p-8 rounded-xl flex items-center justify-center gap-2">
-            <span class="text-red-500 text-2xl font-bold">Nie można połączyć się z serwerem</span>
-            <Spinner />
+          <div class="bg-stone-200 p-8 rounded-xl flex items-center justify-center flex-col gap-2">
+            <div class="flex">
+              <span class="text-red-500 text-2xl font-bold">Nie można połączyć się z serwerem</span>
+              <Spinner />
+            </div>
+            <button
+              class="border-4 w-32 p-2 border-lime-900 bg-lime-500 hover:brightness-105 rounded-lg"
+              onClick={handleLeave}
+            >
+              Rozłącz
+            </button> 
           </div>
         </div>
       </Show>
@@ -156,7 +169,7 @@ export default function ChatPage() {
         <div class="flex h-1/12 items-center justify-center">
           <button
             class="border-4 w-32 p-2 border-lime-900 bg-lime-500 hover:brightness-105 rounded-lg"
-            onClick={() => navigate('/select')}
+            onClick={handleLeave}
           >
             Rozłącz
           </button>

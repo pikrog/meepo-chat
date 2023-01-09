@@ -133,6 +133,7 @@ export class ChatServerWebSocket {
   }
 
   closeWebSocket() {
+    setShouldReconnect(false);
     this.websocket.close();
   }
 
