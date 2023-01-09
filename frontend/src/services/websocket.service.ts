@@ -113,6 +113,9 @@ export class ChatServerWebSocket {
       } else if (message.data === 'no credentials were provided') {
         setWSError('Błąd danych logowania');
         setShouldReconnect(false);
+      } else if (message.data === 'invalid credentials were provided') {
+        setWSError('Dane logowania są nieprawidłowe');
+        setShouldReconnect(false);
       } else {
         setWSError('Nieznany błąd');
       }
