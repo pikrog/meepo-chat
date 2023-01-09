@@ -48,7 +48,7 @@ services:
             target: 3000
             protocol: tcp
         environment:
-            MASTER_SERVER_ADDRESS: ${MASTER_SERVER_ADDRESS}
+            VITE_MASTER: ${VITE_MASTER}
 
 networks:
     # this network has to be created manually via CLI
