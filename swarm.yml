@@ -2,7 +2,7 @@ version: "3.9"
 services:
   front-end:
     environment:
-      MASTER_SERVER_ADDRESS: http://localhost:8080
+      VITE_MASTER: http://localhost:8080
     image: pikrog/meepo-front-end:latest
     ports:
     - target: 3000
@@ -100,4 +100,4 @@ networks:
     attachable: true
 volumes:
   postgres-data:
-    name: pr_postgres-data
+    name: meepo-chat_postgres-data

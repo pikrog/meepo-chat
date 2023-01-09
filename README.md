@@ -1,5 +1,5 @@
 # meepo-chat
-A distirbuted chat system
+A distributed chat system
 
 # Local tests
 
@@ -12,7 +12,7 @@ Run the command below and wait for all the services to initialize.
 ## Configuring Swarm
 Modify `.env` and `.env.chat-server.base` according to your needs. Remember to change these variables when deploying to production:
 - `BACKEND_CORS_ORIGINS`
-- `MASTER_SERVER_ADDRESS`
+- `VITE_MASTER`
 - `JWT_PRIVATE_KEY`
 - `JWT_PUBLIC_KEY`
 
@@ -21,6 +21,8 @@ Also consider modifying these variables for security reasons (especially if Rabb
 - `RABBITMQ_DEFAULT_PASS`
 - `POSTGRES_USER`
 - `POSTGRES_PASSWORD`
+
+Remember to update `BROKER_URL` in `.env.chat-server.base` when `RABBITMQ_DEFAULT_USER` or `RABBITMQ_DEFAULT_PASS` changes.
 
 See [Environmental variables](#environmental-variables) section for more details.
 
@@ -55,15 +57,20 @@ Choose a Swarm node to serve the main database:
 
 Deploy a chat server on any Swarm node:
 
-    $ docker compose -f compose-chat-server.yml --env-file .env.chat-server.example -p chat-server-example up
-    
+1. Make your own copy of `.env.chat-server.example` and name it e.g. `.env.chat-server.my-server-1`
+2. Adjust the advertising and server name settings in the copied environmental variables file.
+3. Deploy the chat server:
+        
+        $ docker compose -f compose-chat-server.yml --env-file .env.chat-server.my-server-1 -p chat-server-my-server-1 up -d
+        
+
 ## Environmental variables
 - `BACKEND_CORS_ORIGINS` – a list of allowed cross origin domains.
 - `SERVER_NAME` – a chat server name.
 - `MAX_CLIENTS` – a maximum number of users in the chat room.
 - `ADVERTISED_ADDRESS` – a published (external) chat server address (IP or domain).
 - `ADVERTISED_PORT` – a published (external) chat server port.
-- `MASTER_SERVER_ADDRESS` – a master server address (reachable by users).
+- `VITE_MASTER` – a master server address (reachable by users).
 - `JWT_PUBLIC_KEY` - an RSA public key used to verify JWT tokens.
 - `JWT_PRIVATE_KEY` – an RSA private key used to sign JWT tokens. Must be kept secret.
 - `RABBITMQ_DEFAULT_USER` – a default user name for the Message Broker.
