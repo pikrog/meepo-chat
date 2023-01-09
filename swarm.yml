@@ -1,4 +1,4 @@
-version: "3.8"
+version: "3.9"
 services:
   front-end:
     environment:
@@ -37,7 +37,47 @@ services:
         "https://localhost", "http://localhost:9999"]'
       BROKER_URL: amqp://user:password@mq
       DATABASE_URL: postgresql://user:password@main-db/meepo
-      JWT_SECRET: super_secret
+      JWT_PRIVATE_KEY: |2
+
+        -----BEGIN RSA PRIVATE KEY-----
+        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
+        -----END RSA PRIVATE KEY-----
     image: pikrog/meepo-master-server:latest
     networks:
       meepo-chat-network: null

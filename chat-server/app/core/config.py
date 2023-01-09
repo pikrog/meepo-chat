@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "chat-server"
     BACKEND_CORS_ORIGINS: List[AnyUrl] = []
 
-    JWT_SECRET: str
+    JWT_PUBLIC_KEY: str
     JWT_ISSUER: str = "master-server"
 
     IP_API: AnyHttpUrl

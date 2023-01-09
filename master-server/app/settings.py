@@ -4,7 +4,7 @@ from typing import List
 
 
 class Settings(BaseSettings):
-    JWT_SECRET: str
+    JWT_PRIVATE_KEY: str
     DATABASE_URL: str
     BROKER_URL: str
     HEARTBEAT_EXCHANGE_NAME: str = "heartbeat-exchange"
